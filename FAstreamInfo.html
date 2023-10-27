@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="widlabel=device-widlabel, initial-scale=1.0">
+	<title>FA Streaming Info</title>
+	<link rel="shortcut icon" type="image/x-icon" size="16x16 32x32" href="./favicon.ico" />
+	<link rel="stylesheet" type="text/css" href="./FAstreamInfo.css" />
+	<script src="./FAstreamInfo.js" defer></script>
+</head>
+
+<body>
+	<div id="backG" class="croma">
+		<h3 id="hideMe" >Double click on any empty space to open options window.</h3>
+		<div class="transparent">
+
+			<p class="dragable animable" id="orden">00</p>
+			<p class="dragable animable" id="nGuia">Handler Handleson</p>
+			<p class="dragable animable" id="perro">Puppy</p>
+			<p class="dragable animable" id="nClub">Dogs & Handlers agility club</p>
+			
+			<p class="dragable animable" id="tiempo">00.00</p>
+			<p class="dragable animable" id="veloci">0.00 m/s</p>
+			<p class="dragable animable" id="faltas">F0</p>
+			<p class="dragable animable" id="rehuse">R0</p>
+			<p class="dragable animable" id="eliRec">ELIMINATED</p>
+
+			
+
+			<div class="dragable" id="tablatiempos">
+				<label class="dragable elemTabla" id="tabPos0o">Pos           </label><label class="dragable elemTabla" id="tabPer0o">Dog  </label><label class="dragable elemTabla" id="tabGui0o">Handler  </label><label class="dragable elemTabla" id="tabPen0o">Penalty  </label><label class="dragable elemTabla" id="tabTie0o">Time  </label>
+				<label class="dragable elemTabla" id="tabPos1o">1<sup>st</sup></label><label class="dragable elemTabla" id="tabPer1o">Dog 1</label><label class="dragable elemTabla" id="tabGui1o">Handler 1</label><label class="dragable elemTabla" id="tabPen1o">Penalty 1</label><label class="dragable elemTabla" id="tabTie1o">Time 1</label>
+				<label class="dragable elemTabla" id="tabPos2o">2<sup>nd</sup></label><label class="dragable elemTabla" id="tabPer2o">Dog 2</label><label class="dragable elemTabla" id="tabGui2o">Handler 2</label><label class="dragable elemTabla" id="tabPen2o">Penalty 2</label><label class="dragable elemTabla" id="tabTie2o">Time 2</label>
+				<label class="dragable elemTabla" id="tabPos3o">3<sup>rd</sup></label><label class="dragable elemTabla" id="tabPer3o">Dog 3</label><label class="dragable elemTabla" id="tabGui3o">Handler 3</label><label class="dragable elemTabla" id="tabPen3o">Penalty 3</label><label class="dragable elemTabla" id="tabTie3o">Time 3</label>
+				<label class="dragable elemTabla" id="tabPos4o">4<sup>th</sup></label><label class="dragable elemTabla" id="tabPer4o">Dog 4</label><label class="dragable elemTabla" id="tabGui4o">Handler 4</label><label class="dragable elemTabla" id="tabPen4o">Penalty 4</label><label class="dragable elemTabla" id="tabTie4o">Time 4</label>
+				<label class="dragable elemTabla" id="tabPos5o">5<sup>th</sup></label><label class="dragable elemTabla" id="tabPer5o">Dog 5</label><label class="dragable elemTabla" id="tabGui5o">Handler 5</label><label class="dragable elemTabla" id="tabPen5o">Penalty 5</label><label class="dragable elemTabla" id="tabTie5o">Time 5</label>
+			</div>
+
+		</div>
+	</div>
+
+	<div id="general" class="ventana">
+		<div id="generalTitulo" class="ventanaTitulo">
+			<b>Generales Propperties</b>
+		</div>
+
+		<div id="generalCuerpo" class="ventanaCuerpo">
+
+			<label class="subTitulo" onmouseover="mInfo('suavizar')" onmouseout="oInfo()">Change between runs</label>
+			<label class="subTitulo">Streaming</label><br>
+
+			<div class="subOpciones">			
+				<label onmouseover="mInfo('suavizar')" onmouseout="oInfo()">Text Smoothing</label><select id="selSuavizar" onmouseover="mInfo('suavizar')" onmouseout="oInfo()">
+					<option selected>No</option>
+					<option>Yes</option>
+				</select>
+				
+				<label>Background</label><input id="bgColor" value="#00000000"/><br>
+				<label>Delay (ms.)</label><input id="inpRetSuave" type="number" value=5000 /><br>
+			</div><br>
+			
+			<label class="subTitulo" style="width: 610px;">Conection</label><br>
+			<div class="subOpciones">	
+				<label>Streaming URL</label><input id="urlWebsocket"/><br>
+				<label id="conStatus">Disconnected</label><button onclick="conectarFlow()" id="bConFlow">Connect</button><br>
+			</div><br>
+
+			<button onclick="generalAplicar()" onmouseover="mInfo('visual')" onmouseout="oInfo()">Preview</button>
+			<button onclick="generalAceptar()" onmouseover="mInfo('aceptar')" onmouseout="oInfo()">OK</button>
+			<button onclick="generalCancelar()" onmouseover="mInfo('cancelar')" onmouseout="oInfo()">Cancel</button>
+			<br>
+			<button onclick="generalEditar()" onmouseover="mInfo('editar')" onmouseout="oInfo()" id="botonEditar">Edit</button>
+			<button onclick="generalGuardar()" onmouseover="mInfo('guardar')" onmouseout="oInfo()">Save</button>
+			<button onclick="generalReset()" onmouseover="mInfo('reset')" onmouseout="oInfo()">Reset</button>
+			<br>
+
+		</div>
+	</div>
+
+	<div id="modal" class="ventana">
+		<div id="modalTitulo" class="ventanaTitulo">
+			<b>Propperties</b>
+		</div>
+		<div id="modalCuerpo" class="ventanaCuerpo">
+
+			<label class="subTitulo">Format</label>
+			<label class="subTitulo">Position</label><br>
+
+			<div class="subOpciones">
+				<label>Font</label><input id="font" />
+				<label>Position X</label><input id="posX" type="number" />
+				<br>
+				<label>Size</label><input id="size" type="number" />
+				<label>Position Y</label><input id="posY" type="number" />
+				<br>
+				<label>Color</label><input id="colo" />
+				<label>Position Z</label><input id="posZ" type="number" min="1" max="9" />
+				<br>
+				<label>BG Color</label><input id="fond" />
+				<br>
+			</div>
+
+			<label class="subTitulo">Dimensions</label>
+			<label class="subTitulo" id="tituloTextos">Before and after texts</label><br>
+
+			<div class="subOpciones">
+				<label>Height</label><input id="alto" type="number" />
+				<label id="labelTex1">Before</label><input id="tex1" />
+				<br>
+				<label>Width</label><input id="anch" type="number" />
+				<label id="labelTex2">After</label><input id="tex2" />
+				<br>
+			</div><br>
+
+			<button onclick="modalAplicar()" onmouseover="mInfo('visual')" onmouseout="oInfo()">Preview</button>
+			<button onclick="modalAceptar()" onmouseover="mInfo('aceptar')" onmouseout="oInfo()">OK</button>
+			<button onclick="modalCancelar()" onmouseover="mInfo('cancelar')" onmouseout="oInfo()">Cancel</button><br>
+
+		</div>
+	</div>
+
+	<div id="vInfo"></div><br>
+
+</body>
+
+</html>
