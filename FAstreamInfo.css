@@ -50,6 +50,8 @@ button {
     display: inline-block;
 }
 
+
+
 #urlWebsocket {
     width: 460px;
 }
@@ -112,8 +114,6 @@ button {
     margin-bottom: 35px;
 }
 
-
-
 /* ventana información emergente */
 #vInfo {
     display: none;
@@ -129,8 +129,8 @@ button {
 }
 
 /* label estado conexion */
-#conStatus{
-    color:red; 
+#conStatus {
+    color: red;
     font-weight: bold;
     text-align: center;
 }
@@ -141,7 +141,6 @@ button {
     padding: 0;
 }
 
-
 /* Elementos streaming */
 #tablatiempos {
     position: absolute;
@@ -150,7 +149,7 @@ button {
     top: 50px;
     left: 500px;
     z-index: 3;
-    background-color:#FFFFFF44;
+    background-color: #FFFFFF44;
 }
 
 .elemTabla {
@@ -169,29 +168,29 @@ button {
 /* COLUMNAS DE LA TABLA DE CLASIFICACION */
 
 [id^="tabPos"] {
-    left : 10px;
+    left: 10px;
     width: 80px;
     text-align: center;
 }
 
 [id^="tabPer"] {
-    left : 90px;
+    left: 90px;
     width: 200px;
 }
 
 [id^="tabGui"] {
-    left : 290px;
+    left: 290px;
     width: 400px;
 }
 
 [id^="tabPen"] {
-    left : 690px;
+    left: 690px;
     width: 150px;
     text-align: right;
 }
 
 [id^="tabTie"] {
-    left : 840px;
+    left: 840px;
     width: 150px;
     text-align: right;
 }
@@ -200,31 +199,31 @@ button {
 
 [id$="0o"] {
     font-weight: bold;
-    top : 10px;
+    top: 10px;
     border-bottom: 3px solid white;
 }
 
 [id$="1o"] {
-    top : 60px;
-    background-color:#FFD70088;
+    top: 60px;
+    background-color: #FFD70088;
 }
 
 [id$="2o"] {
-    top : 110px;
+    top: 110px;
     background-color: #C0C0C088;
 }
 
 [id$="3o"] {
-    top : 160px;
+    top: 160px;
     background-color: #CD7F3288;
 }
 
 [id$="4o"] {
-    top : 210px;
+    top: 210px;
 }
 
 [id$="5o"] {
-    top : 260px;
+    top: 260px;
 }
 
 #tiempo,
@@ -259,7 +258,7 @@ button {
     width: 250px;
     left: 1450px;
     top: 420px;
-    text-align: right;    
+    text-align: right;
 }
 
 #faltas {
@@ -284,7 +283,7 @@ button {
     width: 400px;
     left: 1260px;
     top: 490px;
-    text-align: center;    
+    text-align: center;
 }
 
 #orden {
@@ -293,7 +292,7 @@ button {
     width: 200px;
     left: 10px;
     top: 410px;
-    text-align: right;    
+    text-align: right;
 }
 
 #nGuia {
@@ -332,7 +331,6 @@ button {
     from {
         opacity: 1;
     }
-
     to {
         opacity: 0;
     }
@@ -343,7 +341,27 @@ button {
     top: 10px;
     left: 10px;
     padding: 10px;
-    width:200px; 
-    color: black; 
+    width: 200px;
+    color: black;
     background-color: white;
+}
+
+.move:hover {
+    cursor: move;
+}
+
+.botonX {
+    font-family: tahoma;
+    font-weight: bold;
+    font-size: 10px;
+    color: white;
+    background-color: red;
+    padding: 0px;
+
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
 }

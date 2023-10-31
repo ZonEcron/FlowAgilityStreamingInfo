@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="es-ES">
 
 <head>
@@ -15,18 +15,16 @@
 		<h3 id="hideMe" >Double click on any empty space to open options window.</h3>
 		<div class="transparent">
 
-			<p class="dragable animable" id="orden">00</p>
-			<p class="dragable animable" id="nGuia">Handler Handleson</p>
-			<p class="dragable animable" id="perro">Puppy</p>
-			<p class="dragable animable" id="nClub">Dogs & Handlers agility club</p>
+			<p class="dragable animable" id="orden"></p>
+			<p class="dragable animable" id="nGuia"></p>
+			<p class="dragable animable" id="perro"></p>
+			<p class="dragable animable" id="nClub"></p>
 			
-			<p class="dragable animable" id="tiempo">00.00</p>
-			<p class="dragable animable" id="veloci">0.00 m/s</p>
-			<p class="dragable animable" id="faltas">F0</p>
-			<p class="dragable animable" id="rehuse">R0</p>
-			<p class="dragable animable" id="eliRec">ELIMINATED</p>
-
-			
+			<p class="dragable animable" id="tiempo"></p>
+			<p class="dragable animable" id="veloci"></p>
+			<p class="dragable animable" id="faltas"></p>
+			<p class="dragable animable" id="rehuse"></p>
+			<p class="dragable animable" id="eliRec"></p>	
 
 			<div class="dragable" id="tablatiempos">
 				<label class="dragable elemTabla" id="tabPos0o">Pos           </label><label class="dragable elemTabla" id="tabPer0o">Dog  </label><label class="dragable elemTabla" id="tabGui0o">Handler  </label><label class="dragable elemTabla" id="tabPen0o">Penalty  </label><label class="dragable elemTabla" id="tabTie0o">Time  </label>
@@ -43,6 +41,7 @@
 	<div id="general" class="ventana">
 		<div id="generalTitulo" class="ventanaTitulo">
 			<b>Generales Propperties</b>
+			<button onclick="generalCancelar()" class="botonX">X</button>
 		</div>
 
 		<div id="generalCuerpo" class="ventanaCuerpo">
@@ -66,12 +65,14 @@
 				<label id="conStatus">Disconnected</label><button onclick="conectarFlow()" id="bConFlow">Connect</button><br>
 			</div><br>
 
+			<button onclick="generalEditar()" onmouseover="mInfo('editar')" onmouseout="oInfo()" id="botonEditar">Enter Edit</button>
+			<button onclick="generalGuardar()" onmouseover="mInfo('guardar')" onmouseout="oInfo()">Save</button>
+			<button onclick="generalImpExTar()" onmouseover="mInfo('impExTar')" onmouseout="oInfo()" id="botonImpExTar">Import</button>
+			<input type="file" id="archivoJSON" accept=".json" style="display: none;" onchange="importar(archivoJSON.files[0])" />
+			
+			<br>
 			<button onclick="generalAplicar()" onmouseover="mInfo('visual')" onmouseout="oInfo()">Preview</button>
 			<button onclick="generalAceptar()" onmouseover="mInfo('aceptar')" onmouseout="oInfo()">OK</button>
-			<button onclick="generalCancelar()" onmouseover="mInfo('cancelar')" onmouseout="oInfo()">Cancel</button>
-			<br>
-			<button onclick="generalEditar()" onmouseover="mInfo('editar')" onmouseout="oInfo()" id="botonEditar">Edit</button>
-			<button onclick="generalGuardar()" onmouseover="mInfo('guardar')" onmouseout="oInfo()">Save</button>
 			<button onclick="generalReset()" onmouseover="mInfo('reset')" onmouseout="oInfo()">Reset</button>
 			<br>
 
@@ -81,6 +82,7 @@
 	<div id="modal" class="ventana">
 		<div id="modalTitulo" class="ventanaTitulo">
 			<b>Propperties</b>
+			<button onclick="modalCancelar()" class="botonX">X</button>
 		</div>
 		<div id="modalCuerpo" class="ventanaCuerpo">
 

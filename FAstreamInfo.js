@@ -1,6 +1,8 @@
-/* ----- OBJETOS CON INFO DE EQUIPO ACTUAL Y PROXIMO ----- */
-var currentTeam = null;
+/* ----- OBJETOS CON INFO DEL SERVIDOR ----- */
+var currentTeam = {};
 var nextTeam = null;
+var clasifTeams = {};
+var defSettings = true;
 
 /* ----- COMUNICACION WEBSOCKET Y HEARTBEAT ----- */
 const retNoPong = 55000;
@@ -11,8 +13,6 @@ var connectionF;
 var conectadoF = false;
 
 /* ----- VARIABLES RETARDO STREAMING Y SUAVIZADO ----- */
-var delayTimer;
-
 var retSuave = 5000;
 var suaveTimer;
 var suavizar = true;
@@ -64,6 +64,7 @@ const inpRetSuave = document.getElementById("inpRetSuave");
 const backG = document.getElementById("backG");
 const bgColor = document.getElementById("bgColor");
 const botonEditar = document.getElementById("botonEditar");
+const botonImpExTar = document.getElementById("botonImpExTar");
 
 /* ----- VENTANA EMERGENTE AYUDA -----*/
 var infoTimeout;
@@ -74,8 +75,37 @@ main();
 /* ----- FUNCION INICIAL ----- */
 function main() {
 
+	/* ----- TEXTOS POR DEFECTO DE LOS ELEMENTOS DEL CRONO -----*/
+	faltas.tex1 = "F";
+	rehuse.tex1 = "R";
+	eliRec.tex1 = "ELIMINATED";
+
+	/* ----- VALORES POR DEFECTO DEL BINOMIO EN PANTALLA -----*/
+	currentTeam.start_order = "00";
+	currentTeam.handler = "Handler Handleson";
+	currentTeam.dog_family_name = "Puppy";
+	currentTeam.club = "Dogs & Handlers agility club";
+	currentTeam.time = "00.00";
+	currentTeam.speed = "0.00 m/s";
+	currentTeam.faults = "0";
+	currentTeam.refusals = "0";
+	currentTeam.disqualification = "";
+	currentTeam.status_string = "calculated"
+
+	/* ----- VALORES POR DEFECTO DE LA CLASIFICACION -----*/
+	for (let i = 0; i < 5; i++) {
+		const j = i + 1;
+		clasifTeams[i] = {
+			classification: j,
+			dog_family_name: "Dog " + j,
+			handler: "Handler " + j,
+			total_penalization: "00.0" + j,
+			time: `${j}${j}.${j}${j}`
+		};
+	}
+
 	/* ----- CHECK FOR LOCAL STORED SETTINGS ----- */
-	checkLocalSettings();
+	importSettings(readLocal("FASIsettings"));
 
 	/* ----- FLAG MODO EDICION -----*/
 	general.editando = false;
@@ -106,8 +136,10 @@ function main() {
 	}
 	/* ----- CONFIGURAR ELEMENTOS ARRASTRABLES ----- */
 	for (let item of dragable) {
-		item.tex1 = "";
-		item.tex2 = "";
+		item.tex1 = item.tex1 || "";
+		item.tex2 = item.tex2 || "";
+		item.tex1old = item.tex1;
+		item.tex2old = item.tex2;
 		makeDragable(item);
 		item.addEventListener("dblclick", function () {
 
@@ -117,16 +149,19 @@ function main() {
 
 				if (compStyle.getPropertyValue("display") === "none") {
 
-					modalTitulo.innerHTML = "<b>Propiedades " + item.id + "</b>";
+					modalTitulo.innerHTML = "<b>Propiedades " + item.id + '</b><button onclick="modalCancelar()" class="botonX">X</button>';
 
-					if (item.id === "eliminado-reconocimiento") {
+					if (item.id === "eliRec") {
 						tituloTextos.innerHTML = "Text for";
 						labelTex1.innerHTML = "Eliminated";
-						labelTex2.innerHTML = "Course Walk";
+						tex2.style.visibility = "hidden"
+						labelTex2.style.visibility = "hidden";
 					} else {
 						tituloTextos.innerHTML = "Before and After Texts";
 						labelTex1.innerHTML = "Before";
 						labelTex2.innerHTML = "After";
+						tex2.style.visibility = "visible"
+						labelTex2.style.visibility = "visible";
 					}
 
 					dragPropperties(item);
@@ -163,6 +198,8 @@ function main() {
 	}
 
 	/* ----- CONTROLADORES DE EVENTOS -----*/
+	/*
+	// Close window when user clicks out of the window
 	window.onclick = function (event) {
 		if (event.target != modal && !modal.contains(event.target)) {
 			modalCancelar();
@@ -171,6 +208,7 @@ function main() {
 			generalCancelar();
 		}
 	}
+	*/
 	window.ondblclick = function (event) {
 		hideMe.style.display = "none";
 		window.getSelection()?.removeAllRanges();
@@ -195,20 +233,18 @@ function main() {
 		vInfo.style.top = cursorY + "px";
 	});
 
-	/* ----- TEXTOS POR DEFECTO DE LOS ELEMENTOS DEL CRONO -----*/
-	faltas.tex1 = "F";
-	rehuse.tex1 = "R";
-	eliRec.tex1 = "ELIMINADO";
 	ponInfo();
+	ponClasif();
 
 }
 
 /* ----- LOCAL STORAGE FUNCTIONS ----- */
-function checkLocalSettings() {
-
-	let ajustes = readLocal("FASIsettings");
+function importSettings(ajustes) {
 
 	if (ajustes) {
+
+		toggleImpExp();
+
 		urlWebsocket.value = ajustes.visual.urlWebsocket || "";
 
 		if (urlWebsocket.value) websocFlow();
@@ -288,8 +324,6 @@ function websocFlow() {
 
 			const parsedData = JSON.parse(mensaje.data);
 
-			console.log(parsedData);
-
 			if (parsedData.run.playset) {
 				currentTeam = parsedData.run.playset;
 				ponInfo();
@@ -298,7 +332,8 @@ function websocFlow() {
 			}
 
 			if (parsedData.run.results_best) {
-				ponClasif(parsedData.run.results_best);
+				clasifTeams = parsedData.run.results_best;
+				ponClasif();
 			}
 
 			if (parsedData.run_ready.playset) {
@@ -342,6 +377,8 @@ function noPong() {
 	location.reload();
 }
 function ponInfo() {
+
+	eliRec.innerHTML = eliRec.tex1;
 
 	if (!general.editando) {
 		eliRec.style.visibility = "hidden";
@@ -388,22 +425,33 @@ function ponInfo() {
 		}
 	}
 }
-function ponClasif(array) {
-	array.forEach((equipo, index) => {
-		if (index < 5) {
-			if (equipo.classification) {
-				document.getElementById("tabPer" + (index + 1) + "o").innerHTML = equipo.dog_family_name;
-				document.getElementById("tabGui" + (index + 1) + "o").innerHTML = equipo.handler;
-				document.getElementById("tabPen" + (index + 1) + "o").innerHTML = equipo.total_penalization;
-				document.getElementById("tabTie" + (index + 1) + "o").innerHTML = equipo.time;
-			} else {
-				document.getElementById("tabPer" + (index + 1) + "o").innerHTML = "-----"
-				document.getElementById("tabGui" + (index + 1) + "o").innerHTML = "-----"
-				document.getElementById("tabPen" + (index + 1) + "o").innerHTML = "--.--"
-				document.getElementById("tabTie" + (index + 1) + "o").innerHTML = "--.--"
-			}
+function ponClasif() {
+
+	for (let i = 0; i < 5; i++) {
+
+		const tabPer = document.getElementById("tabPer" + (i + 1) + "o");
+		const tabGui = document.getElementById("tabGui" + (i + 1) + "o");
+		const tabPen = document.getElementById("tabPen" + (i + 1) + "o");
+		const tabTie = document.getElementById("tabTie" + (i + 1) + "o");
+
+		const hayInfo = clasifTeams[i]
+			? clasifTeams[i].classification
+				? true
+				: false
+			: false;
+
+		if (hayInfo) {
+			tabPer.innerHTML = `${tabPer.tex1}${clasifTeams[i].dog_family_name}${tabPer.tex2}`;
+			tabGui.innerHTML = `${tabGui.tex1}${clasifTeams[i].handler}${tabGui.tex2}`;
+			tabPen.innerHTML = `${tabPen.tex1}${clasifTeams[i].total_penalization}${tabPen.tex2}`;
+			tabTie.innerHTML = `${tabTie.tex1}${clasifTeams[i].time}${tabTie.tex2}`;
+		} else {
+			tabPer.innerHTML = `${tabPer.tex1}-----${tabPer.tex2}`;
+			tabGui.innerHTML = `${tabGui.tex1}-----${tabGui.tex2}`;
+			tabPen.innerHTML = `${tabPen.tex1}- -.- -${tabPen.tex2}`;
+			tabTie.innerHTML = `${tabTie.tex1}- -.- -${tabTie.tex2}`;
 		}
-	});
+	};
 }
 
 /* ----- FUNCIONES ELEMENTOS ARRASTRABLES ----- */
@@ -436,7 +484,7 @@ function dragStart(e) {
 		target.mouseX = e.clientX;
 		target.mouseY = e.clientY;
 		target.isDragging = true;
-		target.style.border = "1px solid red";
+		target.style.outline = "1px solid #FF0000FF";
 		target.style.zIndex = 1000;
 	}
 }
@@ -461,7 +509,7 @@ function dragEnd(e) {
 
 	if (target.isDragging) {
 		target.isDragging = false;
-		target.style.border = "none";
+		target.style.outline = "none";
 		target.posX += target.dx;
 		target.posY += target.dy;
 		target.style.zIndex = target.posZ;
@@ -513,18 +561,24 @@ function modalAplicar() {
 	modal.elemento.style.top = posY.value * 1 + 'px';
 
 	let zMinMax = posZ.value * 1;
-	if (zMinMax > 9) zMinMax = 9;
+	if (zMinMax > 9) zMinMax = 999;
 	if (zMinMax < 1) zMinMax = 1;
+	modal.elemento.posZ = zMinMax;
 	modal.elemento.style.zIndex = zMinMax;
 
 	modal.elemento.tex1 = tex1.value;
 	modal.elemento.tex2 = tex2.value;
 
-	ponInfo();
-
+	if (modal.elemento.id.startsWith("tab")) {
+		ponClasif();
+	} else {
+		ponInfo();
+	}
 }
 function modalAceptar() {
-	modalAplicar()
+	modalAplicar();
+	modal.elemento.tex1old = tex1.value;
+	modal.elemento.tex2old = tex2.value;
 	modal.style.display = "none";
 }
 function modalCancelar() {
@@ -547,8 +601,8 @@ function modalCancelar() {
 		modal.elemento.style.top = modal.elemento.posY * 1 + 'px';
 		modal.elemento.style.zIndex = modal.elemento.posZ * 1;
 
-		modal.elemento.tex1 = modal.elemento.tex1;
-		modal.elemento.tex2 = modal.elemento.tex2;
+		modal.elemento.tex1 = modal.elemento.tex1old;
+		modal.elemento.tex2 = modal.elemento.tex2old;
 
 		ponInfo();
 
@@ -558,6 +612,7 @@ function modalCancelar() {
 
 /* ----- FUNCIONES VENTANA DE PROPIEDADES GENERAL ----- */
 function generalAplicar() {
+	toggleImpExp();
 	backG.style.backgroundColor = bgColor.value;
 	cambiaSuavizar();
 }
@@ -592,25 +647,37 @@ function generalReset() {
 }
 function generalEditar() {
 
+	toggleImpExp();
+
 	general.editando = !general.editando;
 
+	for (let item of dragable) {
+		item.classList.toggle("move");
+	}
+	/*
+	for (let item of ventanaTitulo) {
+		item.classList.toggle("move");
+	}
+	*/
 	if (general.editando) {
 
-		botonEditar.innerHTML = "No Editar";
+		botonEditar.innerHTML = "Exit Edit";
 
 		for (let item of dragable) {
 			item.style.visibility = "visible";
 		}
 
 	} else {
-		botonEditar.innerHTML = "Editar";
+		botonEditar.innerHTML = "Enter Edit";
 		ponInfo();
+		ponClasif();
 	}
 
 	generalAplicar();
 
 }
 function generalGuardar() {
+
 	generalAplicar();
 	let ajustes = {
 		visual: {
@@ -643,6 +710,19 @@ function generalGuardar() {
 
 	storeLocal("FASIsettings", ajustes);
 
+	return ajustes;
+
+}
+function generalImpExTar() {
+	if (defSettings) {
+		archivoJSON.click();
+	} else {
+		exportar();
+	}
+}
+function toggleImpExp() {
+	defSettings = false;
+	botonImpExTar.innerHTML = "Exportar";
 }
 function cambiaSuavizar() {
 	suavizar = selSuavizar.selectedIndex;
@@ -666,7 +746,7 @@ function mInfo(tipo) {
 			vInfo.innerHTML = "Discard the modifications and close this window";
 		}
 		if (tipo === "editar") {
-			vInfo.innerHTML = "Show hidden elements and enable editing";
+			vInfo.innerHTML = "Toggle between running mode and editing mode to show hidden elements and enable editing";
 		}
 		if (tipo === "guardar") {
 			vInfo.innerHTML = "Apply the modifications and save <b>all settings</b>";
@@ -677,6 +757,9 @@ function mInfo(tipo) {
 		if (tipo === "suavizar") {
 			vInfo.innerHTML = "When dog finishes the course, after the time indicated in the delay, info will change to next dog with a smooth fade.";
 		}
+		if (tipo === "impExTar") {
+			vInfo.innerHTML = "Export current config or import previous exported. Import only available with reseted settings.";
+		}
 	}, 1500);
 }
 function oInfo() {
@@ -685,4 +768,44 @@ function oInfo() {
 }
 function rUsure() {
 	return (confirm("This can't be undone.\n\n¿Are you sure?\n"));
+}
+
+/* ----- FUNCIONES DE EXPORTACION E IMPORTACION DE CONFIGURACION -----*/
+function exportar() {
+
+	const actualDate = new Date();
+
+	const YYYY = actualDate.getFullYear();
+	const MM = ('0' + (actualDate.getMonth() + 1)).slice(-2);
+	const DD = ('0' + actualDate.getDate()).slice(-2);
+	const hh = ('0' + actualDate.getHours()).slice(-2);
+	const mm = ('0' + actualDate.getMinutes()).slice(-2);
+	const ss = ('0' + actualDate.getSeconds()).slice(-2);
+
+	const contenido = JSON.stringify(generalGuardar());
+
+	const nombreArchivo = `${YYYY}${MM}${DD}-${hh}${mm}${ss}-FASI.json`;
+	const tipoArchivo = "text/json;charset=utf-8;";
+
+	const enlaceDescarga = document.createElement("a");
+	const archivoBlob = new Blob([contenido], { type: tipoArchivo });
+
+	enlaceDescarga.href = URL.createObjectURL(archivoBlob);
+	enlaceDescarga.download = nombreArchivo;
+	enlaceDescarga.click();
+
+	// Limpiar el objeto URL creado para evitar memoria no utilizada
+	URL.revokeObjectURL(enlaceDescarga.href);
+}
+function importar(archivo) {
+
+	const reader = new FileReader();
+
+	reader.onload = function (event) {
+		importSettings(JSON.parse(event.target.result));
+		ponInfo();
+		ponClasif();
+	};
+
+	reader.readAsText(archivo);
 }
