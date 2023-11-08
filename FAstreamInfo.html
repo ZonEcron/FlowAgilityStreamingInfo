@@ -11,113 +11,117 @@
 </head>
 
 <body>
-	<div id="backG" class="croma">
+	<div id="croma" class="croma">
 		<h3 id="hideMe" >Double click on any empty space to open options window.</h3>
 		<div class="transparent">
 
-			<p class="dragable animable" id="orden"></p>
-			<p class="dragable animable" id="nGuia"></p>
-			<p class="dragable animable" id="perro"></p>
-			<p class="dragable animable" id="nClub"></p>
-			
-			<p class="dragable animable" id="tiempo"></p>
-			<p class="dragable animable" id="veloci"></p>
-			<p class="dragable animable" id="faltas"></p>
-			<p class="dragable animable" id="rehuse"></p>
-			<p class="dragable animable" id="eliRec"></p>	
+			<p class="dragable" id="trialName"></p>
+			<p class="dragable" id="gradeSize"></p>
+			<p class="dragable" id="roundType"></p>
 
-			<div class="dragable" id="tablatiempos">
-				<label class="dragable elemTabla" id="tabPos0o">Pos           </label><label class="dragable elemTabla" id="tabPer0o">Dog  </label><label class="dragable elemTabla" id="tabGui0o">Handler  </label><label class="dragable elemTabla" id="tabPen0o">Penalty  </label><label class="dragable elemTabla" id="tabTie0o">Time  </label>
-				<label class="dragable elemTabla" id="tabPos1o">1<sup>st</sup></label><label class="dragable elemTabla" id="tabPer1o">Dog 1</label><label class="dragable elemTabla" id="tabGui1o">Handler 1</label><label class="dragable elemTabla" id="tabPen1o">Penalty 1</label><label class="dragable elemTabla" id="tabTie1o">Time 1</label>
-				<label class="dragable elemTabla" id="tabPos2o">2<sup>nd</sup></label><label class="dragable elemTabla" id="tabPer2o">Dog 2</label><label class="dragable elemTabla" id="tabGui2o">Handler 2</label><label class="dragable elemTabla" id="tabPen2o">Penalty 2</label><label class="dragable elemTabla" id="tabTie2o">Time 2</label>
-				<label class="dragable elemTabla" id="tabPos3o">3<sup>rd</sup></label><label class="dragable elemTabla" id="tabPer3o">Dog 3</label><label class="dragable elemTabla" id="tabGui3o">Handler 3</label><label class="dragable elemTabla" id="tabPen3o">Penalty 3</label><label class="dragable elemTabla" id="tabTie3o">Time 3</label>
-				<label class="dragable elemTabla" id="tabPos4o">4<sup>th</sup></label><label class="dragable elemTabla" id="tabPer4o">Dog 4</label><label class="dragable elemTabla" id="tabGui4o">Handler 4</label><label class="dragable elemTabla" id="tabPen4o">Penalty 4</label><label class="dragable elemTabla" id="tabTie4o">Time 4</label>
-				<label class="dragable elemTabla" id="tabPos5o">5<sup>th</sup></label><label class="dragable elemTabla" id="tabPer5o">Dog 5</label><label class="dragable elemTabla" id="tabGui5o">Handler 5</label><label class="dragable elemTabla" id="tabPen5o">Penalty 5</label><label class="dragable elemTabla" id="tabTie5o">Time 5</label>
+			<p class="dragable animable" id="order"></p>
+			<p class="dragable animable" id="handler"></p>
+			<p class="dragable animable" id="dog"></p>
+			<p class="dragable animable" id="club"></p>
+			
+			<p class="dragable animable" id="time"></p>
+			<p class="dragable animable" id="speed"></p>
+			<p class="dragable animable" id="faults"></p>
+			<p class="dragable animable" id="refusals"></p>
+			<p class="dragable animable" id="eliminated"></p>	
+
+			<div class="dragable" id="scoreTable">
+				<label class="dragable tableItem" id="tabPos0o">Pos           </label><label class="dragable tableItem" id="tabDog0o">Dog  </label><label class="dragable tableItem" id="tabHandler0o">Handler  </label><label class="dragable tableItem" id="tabPenalty0o">Penalty  </label><label class="dragable tableItem" id="tabTime0o">Time  </label>
+				<label class="dragable tableItem" id="tabPos1o">1<sup>st</sup></label><label class="dragable tableItem" id="tabDog1o">Dog 1</label><label class="dragable tableItem" id="tabHandler1o">Handler 1</label><label class="dragable tableItem" id="tabPenalty1o">Penalty 1</label><label class="dragable tableItem" id="tabTime1o">Time 1</label>
+				<label class="dragable tableItem" id="tabPos2o">2<sup>nd</sup></label><label class="dragable tableItem" id="tabDog2o">Dog 2</label><label class="dragable tableItem" id="tabHandler2o">Handler 2</label><label class="dragable tableItem" id="tabPenalty2o">Penalty 2</label><label class="dragable tableItem" id="tabTime2o">Time 2</label>
+				<label class="dragable tableItem" id="tabPos3o">3<sup>rd</sup></label><label class="dragable tableItem" id="tabDog3o">Dog 3</label><label class="dragable tableItem" id="tabHandler3o">Handler 3</label><label class="dragable tableItem" id="tabPenalty3o">Penalty 3</label><label class="dragable tableItem" id="tabTime3o">Time 3</label>
+				<label class="dragable tableItem" id="tabPos4o">4<sup>th</sup></label><label class="dragable tableItem" id="tabDog4o">Dog 4</label><label class="dragable tableItem" id="tabHandler4o">Handler 4</label><label class="dragable tableItem" id="tabPenalty4o">Penalty 4</label><label class="dragable tableItem" id="tabTime4o">Time 4</label>
+				<label class="dragable tableItem" id="tabPos5o">5<sup>th</sup></label><label class="dragable tableItem" id="tabDog5o">Dog 5</label><label class="dragable tableItem" id="tabHandler5o">Handler 5</label><label class="dragable tableItem" id="tabPenalty5o">Penalty 5</label><label class="dragable tableItem" id="tabTime5o">Time 5</label>
 			</div>
 
 		</div>
 	</div>
 
-	<div id="general" class="ventana">
-		<div id="generalTitulo" class="ventanaTitulo">
-			<b>Generales Propperties</b>
-			<button onclick="generalCancelar()" class="botonX">X</button>
+	<div id="general" class="windowBG">
+		<div class="windowTitle">
+			<b>Generales Properties</b>
+			<button onclick="generalCancel()" onmouseover="mInfo('cancelInfo')" onmouseout="oInfo()" class="closeWindowButton">X</button>
 		</div>
 
-		<div id="generalCuerpo" class="ventanaCuerpo">
+		<div class="windowBody">
 
-			<label class="subTitulo" onmouseover="mInfo('suavizar')" onmouseout="oInfo()">Change between runs</label>
-			<label class="subTitulo">Streaming</label><br>
+			<label class="subTitle" onmouseover="mInfo('fading')" onmouseout="oInfo()">Change between runs</label>
+			<label class="subTitle">Streaming</label><br>
 
-			<div class="subOpciones">			
-				<label onmouseover="mInfo('suavizar')" onmouseout="oInfo()">Text Smoothing</label><select id="selSuavizar" onmouseover="mInfo('suavizar')" onmouseout="oInfo()">
-					<option selected>No</option>
-					<option>Yes</option>
+			<div class="subOptions">			
+				<label onmouseover="mInfo('fading')" onmouseout="oInfo()">Text Fading</label><select id="fadingSelector" onmouseover="mInfo('fading')" onmouseout="oInfo()">
+					<option>No</option>
+					<option selected>Yes</option>
 				</select>
 				
-				<label>Background</label><input id="bgColor" value="#00000000"/><br>
-				<label>Delay (ms.)</label><input id="inpRetSuave" type="number" value=5000 /><br>
+				<label>Background</label><input id="cromaBGcolorInput" value="#00000000"/><br>
+				<label>Delay (ms.)</label><input id="fadingDelayInput" type="number" value=5000 /><br>
 			</div><br>
 			
-			<label class="subTitulo" style="width: 610px;">Conection</label><br>
-			<div class="subOpciones">	
+			<label class="subTitle" style="width: 610px;">Conection</label><br>
+			<div class="subOptions">	
 				<label>Streaming URL</label><input id="urlWebsocket"/><br>
-				<label id="conStatus">Disconnected</label><button onclick="conectarFlow()" id="bConFlow">Connect</button><br>
+				<label id="connFlowStatus">Disconnected</label><button onclick="connFlow()" id="connFlowButton">Connect</button><br>
 			</div><br>
 
-			<button onclick="generalEditar()" onmouseover="mInfo('editar')" onmouseout="oInfo()" id="botonEditar">Enter Edit</button>
-			<button onclick="generalGuardar()" onmouseover="mInfo('guardar')" onmouseout="oInfo()">Save</button>
-			<button onclick="generalImpExTar()" onmouseover="mInfo('impExTar')" onmouseout="oInfo()" id="botonImpExTar">Import</button>
-			<input type="file" id="archivoJSON" accept=".json" style="display: none;" onchange="importar(archivoJSON.files[0])" />
+			<button onclick="generalEdit()" onmouseover="mInfo('editInfo')" onmouseout="oInfo()" id="editButton">Enter Edit</button>
+			<button onclick="generalSave()" onmouseover="mInfo('saveInfo')" onmouseout="oInfo()">Save</button>
+			<button onclick="generalImpExp()" onmouseover="mInfo('impExInfo')" onmouseout="oInfo()" id="impExButton">Import</button>
+			<input type="file" id="JSONfile" accept=".json" style="display: none;" onchange="importFile(JSONfile.files[0])" />
 			
 			<br>
-			<button onclick="generalAplicar()" onmouseover="mInfo('visual')" onmouseout="oInfo()">Preview</button>
-			<button onclick="generalAceptar()" onmouseover="mInfo('aceptar')" onmouseout="oInfo()">OK</button>
-			<button onclick="generalReset()" onmouseover="mInfo('reset')" onmouseout="oInfo()">Reset</button>
+			<button onclick="generalApply()" onmouseover="mInfo('visualInfo')" onmouseout="oInfo()">Preview</button>
+			<button onclick="generalAcept()" onmouseover="mInfo('aceptInfo')" onmouseout="oInfo()">OK</button>
+			<button onclick="generalReset()" onmouseover="mInfo('resetInfo')" onmouseout="oInfo()">Reset</button>
 			<br>
 
 		</div>
 	</div>
 
-	<div id="modal" class="ventana">
-		<div id="modalTitulo" class="ventanaTitulo">
-			<b>Propperties</b>
-			<button onclick="modalCancelar()" class="botonX">X</button>
+	<div id="modal" class="windowBG">
+		<div class="windowTitle">
+			<b id="modalTitle">Properties</b>
+			<button onclick="modalCancel()" onmouseover="mInfo('cancelInfo')" onmouseout="oInfo()" class="closeWindowButton">X</button>
 		</div>
-		<div id="modalCuerpo" class="ventanaCuerpo">
+		<div class="windowBody">
 
-			<label class="subTitulo">Format</label>
-			<label class="subTitulo">Position</label><br>
+			<label class="subTitle">Format</label>
+			<label class="subTitle">Position</label><br>
 
-			<div class="subOpciones">
-				<label>Font</label><input id="font" />
-				<label>Position X</label><input id="posX" type="number" />
+			<div class="subOptions">
+				<label>Font</label><input id="fontInput" />
+				<label>Position X</label><input id="posXInput" type="number" />
 				<br>
-				<label>Size</label><input id="size" type="number" />
-				<label>Position Y</label><input id="posY" type="number" />
+				<label>Size</label><input id="sizeInput" type="number" />
+				<label>Position Y</label><input id="posYInput" type="number" />
 				<br>
-				<label>Color</label><input id="colo" />
-				<label>Position Z</label><input id="posZ" type="number" min="1" max="9" />
+				<label>Color</label><input id="textColorInput" />
+				<label>Position Z</label><input id="posZInput" type="number" min="1" max="9" />
 				<br>
-				<label>BG Color</label><input id="fond" />
+				<label>BG Color</label><input id="itemBGcolorInput" />
 				<br>
 			</div>
 
-			<label class="subTitulo">Dimensions</label>
-			<label class="subTitulo" id="tituloTextos">Before and after texts</label><br>
+			<label class="subTitle">Dimensions</label>
+			<label class="subTitle" id="textsTitle">Before and after texts</label><br>
 
-			<div class="subOpciones">
-				<label>Height</label><input id="alto" type="number" />
-				<label id="labelTex1">Before</label><input id="tex1" />
+			<div class="subOptions">
+				<label>Height</label><input id="itemHeight" type="number" />
+				<label id="labelText1">Before</label><input id="text1" />
 				<br>
-				<label>Width</label><input id="anch" type="number" />
-				<label id="labelTex2">After</label><input id="tex2" />
+				<label>Width</label><input id="itemWidth" type="number" />
+				<label id="labelText2">After</label><input id="text2" />
 				<br>
 			</div><br>
 
-			<button onclick="modalAplicar()" onmouseover="mInfo('visual')" onmouseout="oInfo()">Preview</button>
-			<button onclick="modalAceptar()" onmouseover="mInfo('aceptar')" onmouseout="oInfo()">OK</button>
-			<button onclick="modalCancelar()" onmouseover="mInfo('cancelar')" onmouseout="oInfo()">Cancel</button><br>
+			<button onclick="modalApply()" onmouseover="mInfo('visualInfo')" onmouseout="oInfo()">Preview</button>
+			<button onclick="modalAcept()" onmouseover="mInfo('aceptInfo')" onmouseout="oInfo()">OK</button>
+			<button onclick="modalCancel()" onmouseover="mInfo('cancelInfo')" onmouseout="oInfo()">Cancel</button><br>
 
 		</div>
 	</div>

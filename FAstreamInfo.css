@@ -1,5 +1,5 @@
 * {
-    font-family: 'Courier New', Courier, monospace;
+    font-family: Tahoma;
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -8,10 +8,10 @@
 body {
     background-color: black;
     color: white;
+    user-select: none;
 }
 
 p {
-    font-family: Tahoma;
     white-space: pre;
     background-color: #00000000;
 }
@@ -64,7 +64,7 @@ button {
 }
 
 /* Ventana de propiedades*/
-.ventana {
+.windowBG {
     display: none;
     position: absolute;
     top: 100px;
@@ -78,13 +78,13 @@ button {
     overflow: hidden;
 }
 
-.ventanaTitulo {
+.windowTitle {
     padding: 10px 0 10px 30px;
     background-color: #555;
     color: #FFF;
 }
 
-.ventanaCuerpo {
+.windowBody {
     padding: 10px;
     background-color: #CCC;
 }
@@ -100,7 +100,8 @@ button {
     border-bottom: 1px solid white;
 }
 
-.subTitulo {
+.subTitle {
+    font-family: 'Courier New', Courier, monospace;
     width: 300px;
     height: 25px;
     font-size: 20px;
@@ -110,7 +111,7 @@ button {
 
 }
 
-.subOpciones {
+.subOptions {
     margin-bottom: 35px;
 }
 
@@ -136,24 +137,23 @@ button {
 }
 
 /* boton conectar en ventana emergente */
-#bConFlow {
+#connFlowButton {
     margin: 0;
     padding: 0;
 }
 
 /* Elementos streaming */
-#tablatiempos {
+#scoreTable {
     position: absolute;
     height: 310px;
     width: 1000px;
-    top: 50px;
-    left: 500px;
+    top: 200px;
+    left: 400px;
     z-index: 3;
     background-color: #FFFFFF44;
 }
 
-.elemTabla {
-    font-family: "Tahoma";
+.tableItem {
     font-weight: normal;
     position: absolute;
     overflow: hidden;
@@ -173,23 +173,23 @@ button {
     text-align: center;
 }
 
-[id^="tabPer"] {
+[id^="tabDog"] {
     left: 90px;
     width: 200px;
 }
 
-[id^="tabGui"] {
+[id^="tabHandler"] {
     left: 290px;
     width: 400px;
 }
 
-[id^="tabPen"] {
+[id^="tabPenalty"] {
     left: 690px;
     width: 150px;
     text-align: right;
 }
 
-[id^="tabTie"] {
+[id^="tabTime"] {
     left: 840px;
     width: 150px;
     text-align: right;
@@ -226,16 +226,19 @@ button {
     top: 260px;
 }
 
-#tiempo,
-#veloci,
-#faltas,
-#rehuse,
-#eliRec,
+#time,
+#speed,
+#faults,
+#refusals,
+#eliminated,
 #posici,
-#orden,
-#nGuia,
-#perro,
-#nClub {
+#order,
+#handler,
+#dog,
+#club,
+#trialName,
+#gradeSize,
+#roundType {
     position: absolute;
     font-weight: bold;
     text-align: left;
@@ -243,80 +246,108 @@ button {
     z-index: 5;
 }
 
-#tiempo {
+#time {
     font-size: 80px;
     height: 80px;
     width: 300px;
     left: 1200px;
-    top: 400px;
+    top: 600px;
     text-align: right;
 }
 
-#veloci {
+#speed {
     font-size: 40px;
     height: 40px;
     width: 250px;
     left: 1450px;
-    top: 420px;
+    top: 620px;
     text-align: right;
 }
 
-#faltas {
+#faults {
     font-size: 60px;
     height: 60px;
     width: 75px;
     left: 1350px;
-    top: 490px;
+    top: 690px;
 }
 
-#rehuse {
+#refusals {
     font-size: 60px;
     height: 60px;
     width: 75px;
     left: 1500px;
-    top: 490px;
+    top: 690px;
 }
 
-#eliRec {
+#eliminated {
     font-size: 60px;
     height: 60px;
     width: 400px;
     left: 1260px;
-    top: 490px;
+    top: 690px;
     text-align: center;
 }
 
-#orden {
+#order {
     font-size: 100px;
     height: 100px;
     width: 200px;
     left: 10px;
-    top: 410px;
+    top: 610px;
     text-align: right;
 }
 
-#nGuia {
+#handler {
     font-size: 40px;
     height: 40px;
     width: 300px;
     left: 225px;
-    top: 415px;
+    top: 615px;
 }
 
-#perro {
+#dog {
     font-size: 40px;
     height: 40px;
     width: 300px;
     left: 225px;
-    top: 460px;
+    top: 660px;
 }
 
-#nClub {
+#club {
     font-size: 40px;
     height: 40px;
     width: 750px;
     left: 80px;
-    top: 550px;
+    top: 750px;
+}
+
+#trialName {
+    font-size: 40px;
+    height: 40px;
+    width: 750px;
+    left: 570px;
+    top: 25px;
+    text-align: center;
+
+}
+
+#gradeSize {
+    font-size: 50px;
+    height: 50px;
+    width: 200px;
+    left: 900px;
+    top: 70px;
+    text-align: center;
+}
+
+#roundType {
+    font-size: 50px;
+    height: 50px;
+    width: 200px;
+    left: 740px;
+    top: 70px;
+    text-align: center;
 }
 
 /* Animacion transición suavizada entre pistas*/
@@ -350,8 +381,7 @@ button {
     cursor: move;
 }
 
-.botonX {
-    font-family: tahoma;
+.closeWindowButton {
     font-weight: bold;
     font-size: 10px;
     color: white;

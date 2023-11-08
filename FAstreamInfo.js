@@ -1,86 +1,96 @@
-/* ----- OBJETOS CON INFO DEL SERVIDOR ----- */
+/* ----- COMPETITION INFO STORING ----- */
 var currentTeam = {};
 var nextTeam = null;
 var clasifTeams = {};
-var defSettings = true;
 
-/* ----- COMUNICACION WEBSOCKET Y HEARTBEAT ----- */
-const retNoPong = 55000;
-var noPongTimer;
-var pidePong;
-
+/* ----- WEBSOCKET AND HEARTBEAT ----- */
 var connectionF;
 var conectadoF = false;
+var pingTimer;
+const pingDelay = 25000;
+var noPongTimer;
+const noPongDelay = 55000;
 
-/* ----- VARIABLES RETARDO STREAMING Y SUAVIZADO ----- */
-var retSuave = 5000;
-var suaveTimer;
-var suavizar = true;
+/* ----- GENERAL WINDOW ----- */
+var defSettings = true;
+var fadingDelay = 5000;
+var fadingTimer;
 
-/* ----- ELEMENTOS CRONO ----- */
-const tiempo = document.getElementById("tiempo");
-const veloci = document.getElementById("veloci");
-const faltas = document.getElementById("faltas");
-const rehuse = document.getElementById("rehuse");
-const eliRec = document.getElementById("eliRec");
+/* ----- INFORMATION DISPLAYED ----- */
+const time = document.getElementById("time");
+const speed = document.getElementById("speed");
+const faults = document.getElementById("faults");
+const refusals = document.getElementById("refusals");
+const eliminated = document.getElementById("eliminated");
 
-const orden = document.getElementById("orden");
-const nGuia = document.getElementById("nGuia");
-const perro = document.getElementById("perro");
-const nClub = document.getElementById("nClub");
+const order = document.getElementById("order");
+const handler = document.getElementById("handler");
+const dog = document.getElementById("dog");
+const club = document.getElementById("club");
+
+const trialName = document.getElementById("trialName");
+const gradeSize = document.getElementById("gradeSize");
+const roundType = document.getElementById("roundType");
+
 
 /* ----- SELECTORES POR CLASE ----- */
 const dragable = document.getElementsByClassName("dragable");
 const animable = document.getElementsByClassName("animable");
-const ventana = document.getElementsByClassName("ventana");
-const ventanaTitulo = document.getElementsByClassName("ventanaTitulo");
+const windowBG = document.getElementsByClassName("windowBG");
+const windowTitle = document.getElementsByClassName("windowTitle");
 
-/* ----- VENTANA PROPIEDADES ELEMENTOS CRONO ----- */
+/* ----- MODAL WINDOW ----- */
 const modal = document.getElementById('modal');
-const modalTitulo = document.getElementById('modalTitulo');
-const font = document.getElementById("font");
-const size = document.getElementById("size");
-const colo = document.getElementById("colo");
-const fond = document.getElementById("fond");
-const anch = document.getElementById("anch");
-const posX = document.getElementById("posX");
-const posY = document.getElementById("posY");
-const posZ = document.getElementById("posZ");
-const tex1 = document.getElementById("tex1");
-const tex2 = document.getElementById("tex2");
-const tituloTextos = document.getElementById("tituloTextos");
-const labelTex1 = document.getElementById("labelTex1");
-const labelTex2 = document.getElementById("labelTex2");
+const modalTitle = document.getElementById('modalTitle');
+const fontInput = document.getElementById("fontInput");
+const sizeInput = document.getElementById("sizeInput");
+const textColorInput = document.getElementById("textColorInput");
+const itemBGcolorInput = document.getElementById("itemBGcolorInput");
+const itemHeight = document.getElementById("itemHeight");
+const itemWidth = document.getElementById("itemWidth");
+const posXInput = document.getElementById("posXInput");
+const posYInput = document.getElementById("posYInput");
+const posZInput = document.getElementById("posZInput");
+const text1 = document.getElementById("text1");
+const text2 = document.getElementById("text2");
+const textsTitle = document.getElementById("textsTitle");
+const labelText1 = document.getElementById("labelText1");
+const labelText2 = document.getElementById("labelText2");
 
-/* ----- VENTANA PROPIEDADES GENERALES ----- */
+/* ----- GENERAL WINDOW ----- */
 const hideMe = document.getElementById("hideMe");
 const general = document.getElementById("general");
-const generalTitulo = document.getElementById("generalTitulo");
 const urlWebsocket = document.getElementById("urlWebsocket");
-const conStatus = document.getElementById("conStatus");
-const bConFlow = document.getElementById("bConFlow");
-const selSuavizar = document.getElementById("selSuavizar");
-const inpRetSuave = document.getElementById("inpRetSuave");
-const backG = document.getElementById("backG");
-const bgColor = document.getElementById("bgColor");
-const botonEditar = document.getElementById("botonEditar");
-const botonImpExTar = document.getElementById("botonImpExTar");
+const connFlowStatus = document.getElementById("connFlowStatus");
+const connFlowButton = document.getElementById("connFlowButton");
+const fadingSelector = document.getElementById("fadingSelector");
+const fadingDelayInput = document.getElementById("fadingDelayInput");
+const croma = document.getElementById("croma");
+const cromaBGcolorInput = document.getElementById("cromaBGcolorInput");
+const editButton = document.getElementById("editButton");
+const impExButton = document.getElementById("impExButton");
 
-/* ----- VENTANA EMERGENTE AYUDA -----*/
+/* ----- POPUP HELP WINDOW -----*/
+var closeWarningTimeout;
 var infoTimeout;
 const vInfo = document.getElementById("vInfo");
 
 main();
 
-/* ----- FUNCION INICIAL ----- */
 function main() {
 
-	/* ----- TEXTOS POR DEFECTO DE LOS ELEMENTOS DEL CRONO -----*/
-	faltas.tex1 = "F";
-	rehuse.tex1 = "R";
-	eliRec.tex1 = "ELIMINATED";
+	/* ----- TIEMOUT TO HIDE DBL CLICK INFO ----- */
+	setTimeout (()=>{
+		hideMe.style.display = "none";
+	},5000);
 
-	/* ----- VALORES POR DEFECTO DEL BINOMIO EN PANTALLA -----*/
+	/* ----- DEFAULT BEFORE AND AFTER TEXTS OF SOME ELEMENTS -----*/
+	faults.text1 = "F";
+	refusals.text1 = "R";
+	eliminated.text1 = "ELIMINATED";
+	roundType.text2 = " /";
+
+	/* ----- DEFAULT INFO DISPLAYED -----*/
 	currentTeam.start_order = "00";
 	currentTeam.handler = "Handler Handleson";
 	currentTeam.dog_family_name = "Puppy";
@@ -91,8 +101,11 @@ function main() {
 	currentTeam.refusals = "0";
 	currentTeam.disqualification = "";
 	currentTeam.status_string = "calculated"
+	currentTeam.trialName = "Trial Name"
+	currentTeam.gradeSize = "G2 / M"
+	currentTeam.roundType = "AG"
 
-	/* ----- VALORES POR DEFECTO DE LA CLASIFICACION -----*/
+	/* ----- DEFAULT TABLE INFO DISPLAYED -----*/
 	for (let i = 0; i < 5; i++) {
 		const j = i + 1;
 		clasifTeams[i] = {
@@ -107,10 +120,12 @@ function main() {
 	/* ----- CHECK FOR LOCAL STORED SETTINGS ----- */
 	importSettings(readLocal("FASIsettings"));
 
-	/* ----- FLAG MODO EDICION -----*/
+	/* ----- FLAGS -----*/
 	general.editando = false;
+	general.showing = false;
+	modal.showing = false;
 
-	/* ----- CONFIGURAR ELEMENTOS SUAVIZABLES ----- */
+	/* ----- CONFIG ANIMATION TO ANIMABLE (FADING) ELEMENTS  ----- */
 	for (let item of animable) {
 
 		item.addEventListener("animationstart", () => {
@@ -134,96 +149,120 @@ function main() {
 		});
 
 	}
-	/* ----- CONFIGURAR ELEMENTOS ARRASTRABLES ----- */
+	/* ----- CONFIG DRAGABLE ITEMS ----- */
 	for (let item of dragable) {
-		item.tex1 = item.tex1 || "";
-		item.tex2 = item.tex2 || "";
-		item.tex1old = item.tex1;
-		item.tex2old = item.tex2;
+		item.text1 = item.text1 || "";
+		item.text2 = item.text2 || "";
+		item.text1old = item.text1;
+		item.text2old = item.text2;
 		makeDragable(item);
 		item.addEventListener("dblclick", function () {
 
-			if (general.editando) {
+			if (general.editando && !general.showing && !modal.showing) {
 
-				const compStyle = window.getComputedStyle(modal);			// verificamos que no se esta mostrando ya la ventana modal para que no se abra la ventada de tabla encima del elemento de la tabla
+				modalTitle.innerHTML = "Properties " + item.id;
 
-				if (compStyle.getPropertyValue("display") === "none") {
-
-					modalTitulo.innerHTML = "<b>Propiedades " + item.id + '</b><button onclick="modalCancelar()" class="botonX">X</button>';
-
-					if (item.id === "eliRec") {
-						tituloTextos.innerHTML = "Text for";
-						labelTex1.innerHTML = "Eliminated";
-						tex2.style.visibility = "hidden"
-						labelTex2.style.visibility = "hidden";
-					} else {
-						tituloTextos.innerHTML = "Before and After Texts";
-						labelTex1.innerHTML = "Before";
-						labelTex2.innerHTML = "After";
-						tex2.style.visibility = "visible"
-						labelTex2.style.visibility = "visible";
-					}
-
-					dragPropperties(item);
-					modal.elemento = item;
-
-					font.value = item.font;
-					size.value = item.size;
-					colo.value = item.colo;
-					fond.value = item.fond;
-
-					alto.value = item.alto;
-					anch.value = item.anch;
-
-					posX.value = item.posX;
-					posY.value = item.posY;
-					posZ.value = item.posZ;
-
-					tex1.value = item.tex1;
-					tex2.value = item.tex2;
-
-					modal.style.display = "block";
+				if (item.id === "eliminated") {
+					textsTitle.innerHTML = "Text for";
+					labelText1.innerHTML = "Eliminated";
+					text2.style.visibility = "hidden"
+					labelText2.style.visibility = "hidden";
+				} else {
+					textsTitle.innerHTML = "Before and After Texts";
+					labelText1.innerHTML = "Before";
+					labelText2.innerHTML = "After";
+					text2.style.visibility = "visible"
+					labelText2.style.visibility = "visible";
 				}
+
+				if (item.id === "scoreTable") {
+					textsTitle.style.visibility = "hidden";
+					labelText1.style.visibility = "hidden";
+					labelText2.style.visibility = "hidden";
+					text1.style.visibility = "hidden"
+					text2.style.visibility = "hidden";
+				} else {
+					textsTitle.style.visibility = "visible";
+					labelText1.style.visibility = "visible";
+					labelText2.style.visibility = "visible";
+					text1.style.visibility = "visible"
+					text2.style.visibility = "visible";
+				}
+
+				dragProperties(item);
+				modal.elemento = item;
+
+				fontInput.value = item.fontFamily;
+				sizeInput.value = item.fontSize;
+				textColorInput.value = item.color;
+				itemBGcolorInput.value = item.bgColor;
+
+				itemHeight.value = item.height;
+				itemWidth.value = item.width;
+
+				posXInput.value = item.posX;
+				posYInput.value = item.posY;
+				posZInput.value = item.posZ;
+
+				text1.value = item.text1;
+				text2.value = item.text2;
+
+				modal.style.display = "block";
+				modal.showing = true;
+
 			}
 		});
 
 	}
-	/* ----- CONFIGURAR ELEMENTOS DE VENTANAS ----- */
-	for (let item of ventana) {
+	/* ----- CONFIG WINDOWS ----- */
+	for (let item of windowBG) {
 		makeDragable(item);					//hacemos arrastrables las ventanas y  barra de titulo 
 	}
-	for (let item of ventanaTitulo) {
+	for (let item of windowTitle) {
 		makeDragable(item);
 		item.isDragable = false;			// evitamos que la barra de la ventana sea arrastrable para que las funciones drag lo intenten con el padre contenedor
 	}
 
-	/* ----- CONTROLADORES DE EVENTOS -----*/
-	/*
-	// Close window when user clicks out of the window
+	/* ----- EVENTS -----*/
 	window.onclick = function (event) {
+		/*	
+		// Close window when user clicks out of the window										
 		if (event.target != modal && !modal.contains(event.target)) {
-			modalCancelar();
+			modalCancel();	
 		}
 		if (event.target != general && !general.contains(event.target)) {
-			generalCancelar();
+			 generalCancel(); 
+		}
+		*/
+		if (modal.showing && event.target != modal && !modal.contains(event.target)) {
+			vInfo.style.display = "block";
+			vInfo.innerHTML = "Close properties window to drag & drop items";
+			clearTimeout(closeWarningTimeout);
+			closeWarningTimeout = setTimeout(oInfo,1500);
+		}
+		if (general.showing && event.target != general && !general.contains(event.target)) {
+			vInfo.style.display = "block";
+			vInfo.innerHTML = "Close properties window to drag & drop items";
+			clearTimeout(closeWarningTimeout);
+			closeWarningTimeout = setTimeout(oInfo,1500);
 		}
 	}
-	*/
 	window.ondblclick = function (event) {
+
 		hideMe.style.display = "none";
 		window.getSelection()?.removeAllRanges();
-		if (event.target == backG) {
+		if (event.target == croma && !modal.showing) {
 
-			const compStyle = window.getComputedStyle(backG);
-			bgColor.value = rgbaToHex(compStyle.getPropertyValue("background-color"))
+			const compStyle = window.getComputedStyle(croma);
+			cromaBGcolorInput.value = rgbaToHex(compStyle.getPropertyValue("background-color"))
 
 			general.urlWebsocket = urlWebsocket.value;
-			general.suavizar = selSuavizar.selectedIndex;
-			general.retSuave = inpRetSuave.value;
-			general.bgColor = bgColor.value;
+			general.fadingEnabled = fadingSelector.selectedIndex;
+			general.fadingDelay = fadingDelayInput.value;
+			general.bgColor = cromaBGcolorInput.value;
 
 			general.style.display = "block";
-
+			general.showing = true;
 		}
 	}
 	document.addEventListener("mousemove", function (event) {
@@ -239,46 +278,46 @@ function main() {
 }
 
 /* ----- LOCAL STORAGE FUNCTIONS ----- */
-function importSettings(ajustes) {
+function importSettings(mySettings) {
 
-	if (ajustes) {
+	if (mySettings) {
 
 		toggleImpExp();
 
-		urlWebsocket.value = ajustes.visual.urlWebsocket || "";
+		urlWebsocket.value = mySettings.visual.urlWebsocket || "";
 
 		if (urlWebsocket.value) websocFlow();
 
-		selSuavizar.selectedIndex = ajustes.visual.suavizar || 0;
-		inpRetSuave.value = ajustes.visual.retSuave || 5000;
-		backG.style.backgroundColor = ajustes.visual.bgColor || "#000000";
+		fadingSelector.selectedIndex = mySettings.visual.fading || 1;
+		fadingDelayInput.value = mySettings.visual.fadingDelay || 5000;
+		croma.style.backgroundColor = mySettings.visual.bgColor || "#000000";
 
 		for (let item of dragable) {
 
-			item.style.fontFamily = ajustes[item.id].font;
-			item.style.fontSize = ajustes[item.id].size * 1 + 'px';
-			item.style.color = ajustes[item.id].colo;
-			item.style.backgroundColor = ajustes[item.id].fond;
+			item.style.fontFamily = mySettings[item.id].fontFamily;
+			item.style.fontSize = mySettings[item.id].fontSize * 1 + 'px';
+			item.style.color = mySettings[item.id].color;
+			item.style.backgroundColor = mySettings[item.id].bgColor;
 
-			item.style.height = ajustes[item.id].alto * 1 + 'px';
-			item.style.width = ajustes[item.id].anch * 1 + 'px';
-			item.style.left = ajustes[item.id].posX * 1 + 'px';
-			item.style.top = ajustes[item.id].posY * 1 + 'px';
-			item.style.zIndex = ajustes[item.id].posZ * 1;
+			item.style.height = mySettings[item.id].height * 1 + 'px';
+			item.style.width = mySettings[item.id].width * 1 + 'px';
+			item.style.left = mySettings[item.id].posX * 1 + 'px';
+			item.style.top = mySettings[item.id].posY * 1 + 'px';
+			item.style.zIndex = mySettings[item.id].posZ * 1;
 
-			item.font = ajustes[item.id].font;
-			item.size = ajustes[item.id].size;
-			item.colo = ajustes[item.id].colo;
-			item.fond = ajustes[item.id].fond;
+			item.fontFamily = mySettings[item.id].fontFamily;
+			item.fontSize = mySettings[item.id].fontSize;
+			item.color = mySettings[item.id].color;
+			item.bgColor = mySettings[item.id].bgColor;
 
-			item.alto = ajustes[item.id].alto;
-			item.anch = ajustes[item.id].anch;
-			item.posX = ajustes[item.id].posX;
-			item.posY = ajustes[item.id].posY;
-			item.posZ = ajustes[item.id].posZ;
+			item.height = mySettings[item.id].height;
+			item.width = mySettings[item.id].width;
+			item.posX = mySettings[item.id].posX;
+			item.posY = mySettings[item.id].posY;
+			item.posZ = mySettings[item.id].posZ;
 
-			item.tex1 = ajustes[item.id].tex1;
-			item.tex2 = ajustes[item.id].tex2;
+			item.text1 = mySettings[item.id].text1;
+			item.text2 = mySettings[item.id].text2;
 
 		}
 
@@ -286,86 +325,96 @@ function importSettings(ajustes) {
 	}
 
 }
-function storeLocal(keyName, obj) {
-	const jsonString = JSON.stringify(obj);
+function storeLocal(keyName, mySettings) {
+	const jsonString = JSON.stringify(mySettings);
 	localStorage.setItem(keyName, jsonString);
 }
 function readLocal(keyName) {
 	const jsonString = localStorage.getItem(keyName);
-	const obj = JSON.parse(jsonString);
-	return obj;
+	const mySettings = JSON.parse(jsonString);
+	return mySettings;
 }
 
-/* ----- FUNCIONES COMUNICACION WEBSOCKET ----- */
+/* ----- WEBSOCKET FUNCTIONS ----- */
 function websocFlow() {
 	/* ----- COMUNICACION WEBSOCKET FLOW ----- */
-	connectionF = new WebSocket('wss://' + urlWebsocket.value); // p ej: facom-stage.fly.dev/ws/streaming/3EYtxCDX
+	connectionF = new WebSocket('wss://' + urlWebsocket.value);
 	connectionF.onopen = () => {
 		connectionF.send("ping");
 		connectionF.send("streaming_data");
 		conectadoF = true;
-		conStatus.innerHTML = "Conectado";
-		conStatus.style.color = "green";
-		bConFlow.innerHTML = "Desconectar";
+		connFlowStatus.innerHTML = "Conectado";
+		connFlowStatus.style.color = "green";
+		connFlowButton.innerHTML = "Desconectar";
 	};
 	connectionF.onmessage = (mensaje) => {
 
 		if (mensaje.data === 'pong') {
 
 			clearTimeout(noPongTimer);
-			noPongTimer = setTimeout(noPong, retNoPong);
+			noPongTimer = setTimeout(noPong, noPongDelay);
 
-			clearTimeout(pidePong);
-			pidePong = setTimeout(() => {
+			clearTimeout(pingTimer);
+			pingTimer = setTimeout(() => {
 				connectionF.send("ping");
-			}, 25000);
+			}, pingDelay);
 
 		} else {
 
 			const parsedData = JSON.parse(mensaje.data);
 
-			if (parsedData.run.playset) {
-				currentTeam = parsedData.run.playset;
-				ponInfo();
-			} else {
-				currentTeam = null;
+			if (parsedData.run) {
+
+				if (parsedData.run.playset) {
+					currentTeam = parsedData.run.playset;
+					currentTeam.trialName = parsedData.run.trial_name || "----- -- -----";
+					currentTeam.gradeSize = parsedData.run.name || "-- / -";
+					currentTeam.roundType = parsedData.run.type || "--";
+					ponInfo();
+				} else {
+					currentTeam = null;
+				}
+
+				if (parsedData.run.results_best) {
+					clasifTeams = parsedData.run.results_best;
+					ponClasif();
+				}
 			}
 
-			if (parsedData.run.results_best) {
-				clasifTeams = parsedData.run.results_best;
-				ponClasif();
-			}
-
-			if (parsedData.run_ready.playset) {
-				nextTeam = parsedData.run_ready.playset;
-				clearTimeout(suaveTimer);
-				suaveTimer = setTimeout(() => {
-					if (suavizar) {
-						for (let item of animable) {
-							item.classList.add("active");
+			if (parsedData.run_ready) {
+				if (parsedData.run_ready.playset) {
+					nextTeam = parsedData.run_ready.playset;
+					nextTeam.trialName = parsedData.run_ready.trial_name || "----- -- -----";
+					nextTeam.gradeSize = parsedData.run_ready.name || "-- / -";
+					nextTeam.roundType = parsedData.run_ready.type || "--";
+					clearTimeout(fadingTimer);
+					fadingTimer = setTimeout(() => {
+						if (fadingSelector.selectedIndex) {
+							for (let item of animable) {
+								item.classList.add("active");
+							}
+						} else {
+							currentTeam = nextTeam;
+							ponInfo();
 						}
-					} else {
-						currentTeam = nextTeam;
-						ponInfo();
-					}
-				}, retSuave);
-			} else {
-				nextTeam = null;
+					}, fadingDelay);
+				} else {
+					nextTeam = null;
+				}
 			}
-
-
-
 		}
 	};
-}
-function conectarFlow() {
-	if (conectadoF) {
-		connectionF.close();
+	connectionF.onclose = () => {
 		clearTimeout(noPongTimer);
 		conectadoF = false;
-		conStatus.innerHTML = "Desconectado";
-		conStatus.style.color = "red";
-		bConFlow.innerHTML = "Conectar";
+		connFlowStatus.innerHTML = "Desconectado";
+		connFlowStatus.style.color = "red";
+		connFlowButton.innerHTML = "Conectar";
+	}
+}
+function connFlow() {
+	if (conectadoF) {
+		connectionF.close();
 	} else {
 		websocFlow();
 	}
@@ -378,49 +427,52 @@ function noPong() {
 }
 function ponInfo() {
 
-	eliRec.innerHTML = eliRec.tex1;
+	eliminated.innerHTML = eliminated.text1;
 
 	if (!general.editando) {
-		eliRec.style.visibility = "hidden";
-		tiempo.style.visibility = "hidden";
-		veloci.style.visibility = "hidden";
+		eliminated.style.visibility = "hidden";
+		time.style.visibility = "hidden";
+		speed.style.visibility = "hidden";
 	}
 
 	if (currentTeam) {
 
-		orden.innerHTML = `${orden.tex1}${currentTeam.start_order}${orden.tex2}`;
-		nGuia.innerHTML = `${nGuia.tex1}${currentTeam.handler}${nGuia.tex2}`;
-		perro.innerHTML = `${perro.tex1}${currentTeam.dog_family_name}${perro.tex2}`;
-		nClub.innerHTML = `${nClub.tex1}${currentTeam.club}${nClub.tex2}`;
-		faltas.innerHTML = `${faltas.tex1}${currentTeam.faults}${faltas.tex2}`;
-		rehuse.innerHTML = `${rehuse.tex1}${currentTeam.refusals}${rehuse.tex2}`;
+		order.innerHTML = `${order.text1}${currentTeam.start_order}${order.text2}`;
+		handler.innerHTML = `${handler.text1}${currentTeam.handler}${handler.text2}`;
+		dog.innerHTML = `${dog.text1}${currentTeam.dog_family_name}${dog.text2}`;
+		club.innerHTML = `${club.text1}${currentTeam.club}${club.text2}`;
+		faults.innerHTML = `${faults.text1}${currentTeam.faults}${faults.text2}`;
+		refusals.innerHTML = `${refusals.text1}${currentTeam.refusals}${refusals.text2}`;
+		trialName.innerHTML = `${trialName.text1}${currentTeam.trialName}${trialName.text2}`;
+		gradeSize.innerHTML = `${gradeSize.text1}${currentTeam.gradeSize}${gradeSize.text2}`;
+		roundType.innerHTML = `${roundType.text1}${currentTeam.roundType}${roundType.text2}`;
 
 		if (currentTeam.status_string === "calculated") {
-			tiempo.innerHTML = `${tiempo.tex1}${currentTeam.time}${tiempo.tex2}`;
-			veloci.innerHTML = `${veloci.tex1}${currentTeam.speed}${veloci.tex2}`;
+			time.innerHTML = `${time.text1}${currentTeam.time}${time.text2}`;
+			speed.innerHTML = `${speed.text1}${currentTeam.speed}${speed.text2}`;
 		} else {
-			tiempo.innerHTML = `${tiempo.tex1}00.00${tiempo.tex2}`;
-			veloci.innerHTML = `${veloci.tex1}0.00 m/s${veloci.tex2}`;
+			time.innerHTML = `${time.text1}00.00${time.text2}`;
+			speed.innerHTML = `${speed.text1}0.00 m/s${speed.text2}`;
 		}
 
 		if (!general.editando) {
 
 			if (currentTeam.status_string === "calculated") {
-				tiempo.style.visibility = "visible";
-				veloci.style.visibility = "visible";
+				time.style.visibility = "visible";
+				speed.style.visibility = "visible";
 			} else {
-				tiempo.style.visibility = "hidden";
-				veloci.style.visibility = "hidden";
+				time.style.visibility = "hidden";
+				speed.style.visibility = "hidden";
 			}
 
 			if (currentTeam.disqualification === "elim") {
-				faltas.style.visibility = "hidden";
-				rehuse.style.visibility = "hidden";
-				eliRec.style.visibility = "visible";
+				faults.style.visibility = "hidden";
+				refusals.style.visibility = "hidden";
+				eliminated.style.visibility = "visible";
 			} else {
-				faltas.style.visibility = "visible";
-				rehuse.style.visibility = "visible";
-				eliRec.style.visibility = "hidden";
+				faults.style.visibility = "visible";
+				refusals.style.visibility = "visible";
+				eliminated.style.visibility = "hidden";
 			}
 		}
 	}
@@ -429,10 +481,10 @@ function ponClasif() {
 
 	for (let i = 0; i < 5; i++) {
 
-		const tabPer = document.getElementById("tabPer" + (i + 1) + "o");
-		const tabGui = document.getElementById("tabGui" + (i + 1) + "o");
-		const tabPen = document.getElementById("tabPen" + (i + 1) + "o");
-		const tabTie = document.getElementById("tabTie" + (i + 1) + "o");
+		const tabDog = document.getElementById("tabDog" + (i + 1) + "o");
+		const tabHandler = document.getElementById("tabHandler" + (i + 1) + "o");
+		const tabPenalty = document.getElementById("tabPenalty" + (i + 1) + "o");
+		const tabTime = document.getElementById("tabTime" + (i + 1) + "o");
 
 		const hayInfo = clasifTeams[i]
 			? clasifTeams[i].classification
@@ -441,20 +493,20 @@ function ponClasif() {
 			: false;
 
 		if (hayInfo) {
-			tabPer.innerHTML = `${tabPer.tex1}${clasifTeams[i].dog_family_name}${tabPer.tex2}`;
-			tabGui.innerHTML = `${tabGui.tex1}${clasifTeams[i].handler}${tabGui.tex2}`;
-			tabPen.innerHTML = `${tabPen.tex1}${clasifTeams[i].total_penalization}${tabPen.tex2}`;
-			tabTie.innerHTML = `${tabTie.tex1}${clasifTeams[i].time}${tabTie.tex2}`;
+			tabDog.innerHTML = `${tabDog.text1}${clasifTeams[i].dog_family_name}${tabDog.text2}`;
+			tabHandler.innerHTML = `${tabHandler.text1}${clasifTeams[i].handler}${tabHandler.text2}`;
+			tabPenalty.innerHTML = `${tabPenalty.text1}${clasifTeams[i].total_penalization}${tabPenalty.text2}`;
+			tabTime.innerHTML = `${tabTime.text1}${clasifTeams[i].time}${tabTime.text2}`;
 		} else {
-			tabPer.innerHTML = `${tabPer.tex1}-----${tabPer.tex2}`;
-			tabGui.innerHTML = `${tabGui.tex1}-----${tabGui.tex2}`;
-			tabPen.innerHTML = `${tabPen.tex1}- -.- -${tabPen.tex2}`;
-			tabTie.innerHTML = `${tabTie.tex1}- -.- -${tabTie.tex2}`;
+			tabDog.innerHTML = `${tabDog.text1}-----${tabDog.text2}`;
+			tabHandler.innerHTML = `${tabHandler.text1}-----${tabHandler.text2}`;
+			tabPenalty.innerHTML = `${tabPenalty.text1}- -.- -${tabPenalty.text2}`;
+			tabTime.innerHTML = `${tabTime.text1}- -.- -${tabTime.text2}`;
 		}
 	};
 }
 
-/* ----- FUNCIONES ELEMENTOS ARRASTRABLES ----- */
+/* ----- DRAGABLE ELEMENTS FUNTIONS ----- */
 function makeDragable(element) {
 
 	element.addEventListener("mousedown", dragStart);
@@ -471,7 +523,7 @@ function makeDragable(element) {
 	element.dx = 0;
 	element.dy = 0;
 
-	dragPropperties(element);
+	dragProperties(element);
 
 }
 function dragStart(e) {
@@ -481,11 +533,14 @@ function dragStart(e) {
 		: e.target.parentNode;
 
 	if (target.isDragable && general.editando) {
-		target.mouseX = e.clientX;
-		target.mouseY = e.clientY;
-		target.isDragging = true;
-		target.style.outline = "1px solid #FF0000FF";
-		target.style.zIndex = 1000;
+		if ((!general.showing || target.id === "general") && (!modal.showing || target.id === "modal")) {
+			target.mouseX = e.clientX;
+			target.mouseY = e.clientY;
+			target.isDragging = true;
+			target.style.outline = "1px solid #FF0000FF";
+			target.style.zIndex = 1000;
+		}
+
 	}
 }
 function drag(e) {
@@ -515,25 +570,23 @@ function dragEnd(e) {
 		target.style.zIndex = target.posZ;
 	}
 }
-function dragPropperties(e) {
+function dragProperties(e) {
 
 	const compStyle = window.getComputedStyle(e);
 
-	e.font = compStyle.getPropertyValue("font-family");
-	e.size = parseInt(compStyle.getPropertyValue("font-size"), 10);
-	e.colo = rgbaToHex(compStyle.getPropertyValue("color"));
-	e.fond = rgbaToHex(compStyle.getPropertyValue("background-color"));
+	e.fontFamily = compStyle.getPropertyValue("font-family");
+	e.fontSize = parseInt(compStyle.getPropertyValue("font-size"), 10);
+	e.color = rgbaToHex(compStyle.getPropertyValue("color"));
+	e.bgColor = rgbaToHex(compStyle.getPropertyValue("background-color"));
 
-	e.alto = parseInt(compStyle.getPropertyValue("height"), 10);
-	e.anch = parseInt(compStyle.getPropertyValue("width"), 10);
+	e.height = parseInt(compStyle.getPropertyValue("height"), 10);
+	e.width = parseInt(compStyle.getPropertyValue("width"), 10);
 
 	e.posX = parseInt(compStyle.getPropertyValue("left"), 10);
 	e.posY = parseInt(compStyle.getPropertyValue("top"), 10);
 	e.posZ = parseInt(compStyle.getPropertyValue("z-index"), 10);
 
 }
-
-/* ----- FUNCIONES FORMATO ----- */
 function rgbaToHex(rgba) {
 	// convertir color rgba a formato hexadecimal
 	const hex = rgba.match(/^(rgba|rgb)\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)$/);
@@ -546,28 +599,28 @@ function rgbaToHex(rgba) {
 	return `#${r}${g}${b}${a}`;
 }
 
-/* ----- FUNCIONES VENTANA DE PROPIEDADES ELEMENTOS ----- */
-function modalAplicar() {
+/* ----- MODAL WINDOW FUNCTIONS ----- */
+function modalApply() {
 
-	modal.elemento.style.fontFamily = font.value;
-	modal.elemento.style.fontSize = size.value * 1 + 'px';
-	modal.elemento.style.color = colo.value;
-	modal.elemento.style.backgroundColor = fond.value;
+	modal.elemento.style.fontFamily = fontInput.value;
+	modal.elemento.style.fontSize = sizeInput.value * 1 + 'px';
+	modal.elemento.style.color = textColorInput.value;
+	modal.elemento.style.backgroundColor = itemBGcolorInput.value;
 
-	modal.elemento.style.height = alto.value * 1 + 'px';
-	modal.elemento.style.width = anch.value * 1 + 'px';
+	modal.elemento.style.height = itemHeight.value * 1 + 'px';
+	modal.elemento.style.width = itemWidth.value * 1 + 'px';
 
-	modal.elemento.style.left = posX.value * 1 + 'px';
-	modal.elemento.style.top = posY.value * 1 + 'px';
+	modal.elemento.style.left = posXInput.value * 1 + 'px';
+	modal.elemento.style.top = posYInput.value * 1 + 'px';
 
-	let zMinMax = posZ.value * 1;
+	let zMinMax = posZInput.value * 1;
 	if (zMinMax > 9) zMinMax = 999;
 	if (zMinMax < 1) zMinMax = 1;
 	modal.elemento.posZ = zMinMax;
 	modal.elemento.style.zIndex = zMinMax;
 
-	modal.elemento.tex1 = tex1.value;
-	modal.elemento.tex2 = tex2.value;
+	modal.elemento.text1 = text1.value;
+	modal.elemento.text2 = text2.value;
 
 	if (modal.elemento.id.startsWith("tab")) {
 		ponClasif();
@@ -575,34 +628,36 @@ function modalAplicar() {
 		ponInfo();
 	}
 }
-function modalAceptar() {
-	modalAplicar();
-	modal.elemento.tex1old = tex1.value;
-	modal.elemento.tex2old = tex2.value;
+function modalAcept() {
+	modalApply();
+	modal.elemento.text1old = text1.value;
+	modal.elemento.text2old = text2.value;
 	modal.style.display = "none";
+	modal.showing = false;
 }
-function modalCancelar() {
+function modalCancel() {
 
 	let modalEstado = getComputedStyle(modal);
 
 	if (modalEstado.getPropertyValue("display") != "none") {
 
 		modal.style.display = "none";
+		modal.showing = false;
 
-		modal.elemento.style.fontFamily = modal.elemento.font;
-		modal.elemento.style.fontSize = modal.elemento.size * 1 + 'px';
-		modal.elemento.style.color = modal.elemento.colo;
-		modal.elemento.style.backgroundColor = modal.elemento.fond;
+		modal.elemento.style.fontFamily = modal.elemento.fontFamily;
+		modal.elemento.style.fontSize = modal.elemento.fontSize * 1 + 'px';
+		modal.elemento.style.color = modal.elemento.color;
+		modal.elemento.style.backgroundColor = modal.elemento.bgColor;
 
-		modal.elemento.style.height = modal.elemento.alto * 1 + 'px';
-		modal.elemento.style.width = modal.elemento.anch * 1 + 'px';
+		modal.elemento.style.height = modal.elemento.height * 1 + 'px';
+		modal.elemento.style.width = modal.elemento.width * 1 + 'px';
 
 		modal.elemento.style.left = modal.elemento.posX * 1 + 'px';
 		modal.elemento.style.top = modal.elemento.posY * 1 + 'px';
 		modal.elemento.style.zIndex = modal.elemento.posZ * 1;
 
-		modal.elemento.tex1 = modal.elemento.tex1old;
-		modal.elemento.tex2 = modal.elemento.tex2old;
+		modal.elemento.text1 = modal.elemento.text1old;
+		modal.elemento.text2 = modal.elemento.text2old;
 
 		ponInfo();
 
@@ -610,29 +665,31 @@ function modalCancelar() {
 
 }
 
-/* ----- FUNCIONES VENTANA DE PROPIEDADES GENERAL ----- */
-function generalAplicar() {
+/* ----- GENERAL WINDOW FUNCTIONS ----- */
+function generalApply() {
 	toggleImpExp();
-	backG.style.backgroundColor = bgColor.value;
+	croma.style.backgroundColor = cromaBGcolorInput.value;
 	cambiaSuavizar();
 }
-function generalAceptar() {
+function generalAcept() {
 
-	generalAplicar();
+	generalApply();
 	general.style.display = "none";
+	general.showing = false;
 
 }
-function generalCancelar() {
+function generalCancel() {
 
 	let generalEstado = getComputedStyle(general);
 
 	if (generalEstado.getPropertyValue("display") != "none") {
 
 		general.style.display = "none";
+		general.showing = false;
 		urlWebsocket.value = general.urlWebsocket;
-		selSuavizar.selectedIndex = general.suavizar;
-		inpRetSuave.value = general.retSuave;
-		backG.style.backgroundColor = general.bgColor;
+		fadingSelector.selectedIndex = general.fading;
+		fadingDelayInput.value = general.fadingDelay;
+		croma.style.backgroundColor = general.bgColor;
 
 	}
 
@@ -645,119 +702,115 @@ function generalReset() {
 		location.reload();
 	}
 }
-function generalEditar() {
+function generalEdit() {
 
 	toggleImpExp();
 
 	general.editando = !general.editando;
 
+	// change cursor over dragable elements
 	for (let item of dragable) {
 		item.classList.toggle("move");
 	}
-	/*
-	for (let item of ventanaTitulo) {
-		item.classList.toggle("move");
-	}
-	*/
+
 	if (general.editando) {
 
-		botonEditar.innerHTML = "Exit Edit";
+		editButton.innerHTML = "Exit Edit";
 
 		for (let item of dragable) {
 			item.style.visibility = "visible";
 		}
 
 	} else {
-		botonEditar.innerHTML = "Enter Edit";
+		editButton.innerHTML = "Enter Edit";
 		ponInfo();
 		ponClasif();
 	}
 
-	generalAplicar();
+	generalApply();
 
 }
-function generalGuardar() {
+function generalSave() {
 
-	generalAplicar();
-	let ajustes = {
+	generalApply();
+	let mySettings = {
 		visual: {
 			"urlWebsocket": urlWebsocket.value,
-			"suavizar": selSuavizar.selectedIndex,
-			"retSuave": inpRetSuave.value * 1,
-			"bgColor": bgColor.value
+			"fading": fadingSelector.selectedIndex,
+			"fadingDelay": fadingDelayInput.value * 1,
+			"bgColor": cromaBGcolorInput.value
 		}
 	}
 
 	for (let item of dragable) {
 
-		dragPropperties(item);
+		dragProperties(item);
 
-		ajustes[item.id] = {};
+		mySettings[item.id] = {};
 
-		ajustes[item.id].font = item.font;
-		ajustes[item.id].size = item.size;
-		ajustes[item.id].colo = item.colo;
-		ajustes[item.id].fond = item.fond;
-		ajustes[item.id].alto = item.alto;
-		ajustes[item.id].anch = item.anch;
-		ajustes[item.id].posX = item.posX;
-		ajustes[item.id].posY = item.posY;
-		ajustes[item.id].posZ = item.posZ;
-		ajustes[item.id].tex1 = item.tex1;
-		ajustes[item.id].tex2 = item.tex2;
+		mySettings[item.id].fontFamily = item.fontFamily;
+		mySettings[item.id].fontSize = item.fontSize;
+		mySettings[item.id].color = item.color;
+		mySettings[item.id].bgColor = item.bgColor;
+		mySettings[item.id].height = item.height;
+		mySettings[item.id].width = item.width;
+		mySettings[item.id].posX = item.posX;
+		mySettings[item.id].posY = item.posY;
+		mySettings[item.id].posZ = item.posZ;
+		mySettings[item.id].text1 = item.text1;
+		mySettings[item.id].text2 = item.text2;
 
 	}
 
-	storeLocal("FASIsettings", ajustes);
+	storeLocal("FASIsettings", mySettings);
 
-	return ajustes;
+	return mySettings;
 
 }
-function generalImpExTar() {
+function generalImpExp() {
 	if (defSettings) {
-		archivoJSON.click();
+		JSONfile.click();
 	} else {
 		exportar();
 	}
 }
 function toggleImpExp() {
 	defSettings = false;
-	botonImpExTar.innerHTML = "Exportar";
+	impExButton.innerHTML = "Exportar";
 }
 function cambiaSuavizar() {
-	suavizar = selSuavizar.selectedIndex;
-	retSuave = inpRetSuave.value * 1 || 5000;
-	if (!suavizar) {
-		clearTimeout(suaveTimer);
+	fadingDelay = fadingDelayInput.value * 1 || 5000;
+	if (!fadingSelector.selectedIndex) {
+		clearTimeout(fadingTimer);
 	}
 }
 
-/* ----- FUNCIONES VENTANA EMERGENTE AYUDA -----*/
+/* ----- POPUP HELP WINDOW FUNCTIONS -----*/
 function mInfo(tipo) {
 	infoTimeout = setTimeout(function () {
 		vInfo.style.display = "block";
-		if (tipo === "visual") {
+		if (tipo === "visualInfo") {
 			vInfo.innerHTML = "Temporarily apply the modifications";
 		}
-		if (tipo === "aceptar") {
+		if (tipo === "aceptInfo") {
 			vInfo.innerHTML = "Apply the modifications and close this window";
 		}
-		if (tipo === "cancelar") {
+		if (tipo === "cancelInfo") {
 			vInfo.innerHTML = "Discard the modifications and close this window";
 		}
-		if (tipo === "editar") {
+		if (tipo === "editInfo") {
 			vInfo.innerHTML = "Toggle between running mode and editing mode to show hidden elements and enable editing";
 		}
-		if (tipo === "guardar") {
+		if (tipo === "saveInfo") {
 			vInfo.innerHTML = "Apply the modifications and save <b>all settings</b>";
 		}
-		if (tipo === "reset") {
+		if (tipo === "resetInfo") {
 			vInfo.innerHTML = "Return to <b>factory settings</b> and delete saved settings";
 		}
-		if (tipo === "suavizar") {
+		if (tipo === "fading") {
 			vInfo.innerHTML = "When dog finishes the course, after the time indicated in the delay, info will change to next dog with a smooth fade.";
 		}
-		if (tipo === "impExTar") {
+		if (tipo === "impExInfo") {
 			vInfo.innerHTML = "Export current config or import previous exported. Import only available with reseted settings.";
 		}
 	}, 1500);
@@ -770,7 +823,7 @@ function rUsure() {
 	return (confirm("This can't be undone.\n\n¿Are you sure?\n"));
 }
 
-/* ----- FUNCIONES DE EXPORTACION E IMPORTACION DE CONFIGURACION -----*/
+/* ----- SETTINGS EXPORT AND IMPORT FUNCTIONS -----*/
 function exportar() {
 
 	const actualDate = new Date();
@@ -782,7 +835,7 @@ function exportar() {
 	const mm = ('0' + actualDate.getMinutes()).slice(-2);
 	const ss = ('0' + actualDate.getSeconds()).slice(-2);
 
-	const contenido = JSON.stringify(generalGuardar());
+	const contenido = JSON.stringify(generalSave());
 
 	const nombreArchivo = `${YYYY}${MM}${DD}-${hh}${mm}${ss}-FASI.json`;
 	const tipoArchivo = "text/json;charset=utf-8;";
@@ -794,10 +847,9 @@ function exportar() {
 	enlaceDescarga.download = nombreArchivo;
 	enlaceDescarga.click();
 
-	// Limpiar el objeto URL creado para evitar memoria no utilizada
-	URL.revokeObjectURL(enlaceDescarga.href);
+	URL.revokeObjectURL(enlaceDescarga.href);		// clean created URL objet
 }
-function importar(archivo) {
+function importFile(archivo) {
 
 	const reader = new FileReader();
 
