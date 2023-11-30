@@ -17,3 +17,8 @@
  - Added trial name, course, grade and size
  - Improved drag & drop feature
  - Drag and drop is only enabled if properties windows are closed to improve consistency of settings.
+
+ ## 0.4.0 - 2023/11/30
+ - Fixed background color bug when importing
+ - Added undo <kbd>Ctrl</kbd> + <kbd>z</kbd> and redo <kbd>Shift</kbd> + <kbd>Ctrl</kbd> + <kbd>z</kbd> up to 100 actions.
+ 

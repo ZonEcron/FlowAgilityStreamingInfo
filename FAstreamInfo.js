@@ -32,7 +32,6 @@ const trialName = document.getElementById("trialName");
 const gradeSize = document.getElementById("gradeSize");
 const roundType = document.getElementById("roundType");
 
-
 /* ----- SELECTORES POR CLASE ----- */
 const dragable = document.getElementsByClassName("dragable");
 const animable = document.getElementsByClassName("animable");
@@ -75,14 +74,28 @@ var closeWarningTimeout;
 var infoTimeout;
 const vInfo = document.getElementById("vInfo");
 
+/* ----- UNDO QUEUE -----*/
+var undoArray = [];
+var undoPointer = 0;
+
 main();
 
+/* ----- INITIALIZATION FUNCTIONS ----- */
 function main() {
 
-	/* ----- TIEMOUT TO HIDE DBL CLICK INFO ----- */
-	setTimeout (()=>{
+	setTimeout(() => {
 		hideMe.style.display = "none";
-	},5000);
+	}, 5000);
+
+	defaultTextsAndFlags();
+	importSettings(readLocal("FASIsettings"));
+	animablesAndDragables();
+	eventTriggers();
+	updateDisplay();
+	populateUndoArray(readAllSettings());
+
+}
+function defaultTextsAndFlags() {
 
 	/* ----- DEFAULT BEFORE AND AFTER TEXTS OF SOME ELEMENTS -----*/
 	faults.text1 = "F";
@@ -117,14 +130,13 @@ function main() {
 		};
 	}
 
-	/* ----- CHECK FOR LOCAL STORED SETTINGS ----- */
-	importSettings(readLocal("FASIsettings"));
-
 	/* ----- FLAGS -----*/
-	general.editando = false;
+	general.editing = false;
 	general.showing = false;
 	modal.showing = false;
 
+}
+function animablesAndDragables() {
 	/* ----- CONFIG ANIMATION TO ANIMABLE (FADING) ELEMENTS  ----- */
 	for (let item of animable) {
 
@@ -137,7 +149,7 @@ function main() {
 			item.style["-webkit-animation-direction"] = "reverse";
 
 			currentTeam = nextTeam;
-			ponInfo();
+			updateInfo();
 
 			//console.log('animation iterated');
 		});
@@ -156,9 +168,8 @@ function main() {
 		item.text1old = item.text1;
 		item.text2old = item.text2;
 		makeDragable(item);
-		item.addEventListener("dblclick", function () {
-
-			if (general.editando && !general.showing && !modal.showing) {
+		item.addEventListener("dblclick", () => {
+			if (general.editing && !general.showing && !modal.showing) {
 
 				modalTitle.innerHTML = "Properties " + item.id;
 
@@ -216,39 +227,30 @@ function main() {
 	}
 	/* ----- CONFIG WINDOWS ----- */
 	for (let item of windowBG) {
-		makeDragable(item);					//hacemos arrastrables las ventanas y  barra de titulo 
+		makeDragable(item);
 	}
 	for (let item of windowTitle) {
 		makeDragable(item);
-		item.isDragable = false;			// evitamos que la barra de la ventana sea arrastrable para que las funciones drag lo intenten con el padre contenedor
+		item.isDragable = false;
 	}
-
+}
+function eventTriggers() {
 	/* ----- EVENTS -----*/
 	window.onclick = function (event) {
-		/*	
-		// Close window when user clicks out of the window										
-		if (event.target != modal && !modal.contains(event.target)) {
-			modalCancel();	
-		}
-		if (event.target != general && !general.contains(event.target)) {
-			 generalCancel(); 
-		}
-		*/
 		if (modal.showing && event.target != modal && !modal.contains(event.target)) {
 			vInfo.style.display = "block";
 			vInfo.innerHTML = "Close properties window to drag & drop items";
 			clearTimeout(closeWarningTimeout);
-			closeWarningTimeout = setTimeout(oInfo,1500);
+			closeWarningTimeout = setTimeout(oInfo, 1500);
 		}
 		if (general.showing && event.target != general && !general.contains(event.target)) {
 			vInfo.style.display = "block";
 			vInfo.innerHTML = "Close properties window to drag & drop items";
 			clearTimeout(closeWarningTimeout);
-			closeWarningTimeout = setTimeout(oInfo,1500);
+			closeWarningTimeout = setTimeout(oInfo, 1500);
 		}
 	}
 	window.ondblclick = function (event) {
-
 		hideMe.style.display = "none";
 		window.getSelection()?.removeAllRanges();
 		if (event.target == croma && !modal.showing) {
@@ -271,10 +273,19 @@ function main() {
 		vInfo.style.left = (cursorX + 50) + "px";
 		vInfo.style.top = cursorY + "px";
 	});
-
-	ponInfo();
-	ponClasif();
-
+	document.addEventListener('keydown', (event) => {
+		if (general.editing) {
+			if (event.ctrlKey && event.key === 'z') {
+				undoEdit();
+			}
+			if (event.shiftKey && event.ctrlKey && event.key === 'z') {
+				redoEdit();
+			}
+			if (event.ctrlKey && event.key === 'y') {
+				redoEdit();
+			}
+		}
+	});
 }
 
 /* ----- LOCAL STORAGE FUNCTIONS ----- */
@@ -337,7 +348,7 @@ function readLocal(keyName) {
 
 /* ----- WEBSOCKET FUNCTIONS ----- */
 function websocFlow() {
-	/* ----- COMUNICACION WEBSOCKET FLOW ----- */
+
 	connectionF = new WebSocket('wss://' + urlWebsocket.value);
 	connectionF.onopen = () => {
 		connectionF.send("ping");
@@ -370,14 +381,14 @@ function websocFlow() {
 					currentTeam.trialName = parsedData.run.trial_name || "----- -- -----";
 					currentTeam.gradeSize = parsedData.run.name || "-- / -";
 					currentTeam.roundType = parsedData.run.type || "--";
-					ponInfo();
+					updateInfo();
 				} else {
 					currentTeam = null;
 				}
 
 				if (parsedData.run.results_best) {
 					clasifTeams = parsedData.run.results_best;
-					ponClasif();
+					updateClassif();
 				}
 			}
 
@@ -395,7 +406,7 @@ function websocFlow() {
 							}
 						} else {
 							currentTeam = nextTeam;
-							ponInfo();
+							updateInfo();
 						}
 					}, fadingDelay);
 				} else {
@@ -425,11 +436,11 @@ function noPing() {
 function noPong() {
 	location.reload();
 }
-function ponInfo() {
+function updateInfo() {
 
 	eliminated.innerHTML = eliminated.text1;
 
-	if (!general.editando) {
+	if (!general.editing) {
 		eliminated.style.visibility = "hidden";
 		time.style.visibility = "hidden";
 		speed.style.visibility = "hidden";
@@ -455,7 +466,7 @@ function ponInfo() {
 			speed.innerHTML = `${speed.text1}0.00 m/s${speed.text2}`;
 		}
 
-		if (!general.editando) {
+		if (!general.editing) {
 
 			if (currentTeam.status_string === "calculated") {
 				time.style.visibility = "visible";
@@ -477,7 +488,7 @@ function ponInfo() {
 		}
 	}
 }
-function ponClasif() {
+function updateClassif() {
 
 	for (let i = 0; i < 5; i++) {
 
@@ -532,15 +543,16 @@ function dragStart(e) {
 		? e.target
 		: e.target.parentNode;
 
-	if (target.isDragable && general.editando) {
+	if (target.isDragable && general.editing) {
 		if ((!general.showing || target.id === "general") && (!modal.showing || target.id === "modal")) {
 			target.mouseX = e.clientX;
 			target.mouseY = e.clientY;
 			target.isDragging = true;
 			target.style.outline = "1px solid #FF0000FF";
 			target.style.zIndex = 1000;
+			target.dxOld = target.dx || 0;
+			target.dyOld = target.dy || 0;
 		}
-
 	}
 }
 function drag(e) {
@@ -568,6 +580,9 @@ function dragEnd(e) {
 		target.posX += target.dx;
 		target.posY += target.dy;
 		target.style.zIndex = target.posZ;
+		if (target.dx != target.dxOld || target.dy != target.dyOld) {
+			populateUndoArray(readAllSettings());
+		}
 	}
 }
 function dragProperties(e) {
@@ -623,17 +638,19 @@ function modalApply() {
 	modal.elemento.text2 = text2.value;
 
 	if (modal.elemento.id.startsWith("tab")) {
-		ponClasif();
+		updateClassif();
 	} else {
-		ponInfo();
+		updateInfo();
 	}
 }
-function modalAcept() {
+function modalAccept() {
 	modalApply();
 	modal.elemento.text1old = text1.value;
 	modal.elemento.text2old = text2.value;
 	modal.style.display = "none";
 	modal.showing = false;
+	populateUndoArray(readAllSettings());
+
 }
 function modalCancel() {
 
@@ -659,7 +676,7 @@ function modalCancel() {
 		modal.elemento.text1 = modal.elemento.text1old;
 		modal.elemento.text2 = modal.elemento.text2old;
 
-		ponInfo();
+		updateInfo();
 
 	}
 
@@ -671,12 +688,11 @@ function generalApply() {
 	croma.style.backgroundColor = cromaBGcolorInput.value;
 	cambiaSuavizar();
 }
-function generalAcept() {
-
+function generalAccept() {
 	generalApply();
 	general.style.display = "none";
 	general.showing = false;
-
+	populateUndoArray(readAllSettings());
 }
 function generalCancel() {
 
@@ -693,7 +709,7 @@ function generalCancel() {
 
 	}
 
-	ponInfo();
+	updateInfo();
 
 }
 function generalReset() {
@@ -706,14 +722,14 @@ function generalEdit() {
 
 	toggleImpExp();
 
-	general.editando = !general.editando;
+	general.editing = !general.editing;
 
 	// change cursor over dragable elements
 	for (let item of dragable) {
 		item.classList.toggle("move");
 	}
 
-	if (general.editando) {
+	if (general.editing) {
 
 		editButton.innerHTML = "Exit Edit";
 
@@ -721,18 +737,20 @@ function generalEdit() {
 			item.style.visibility = "visible";
 		}
 
+		general.style.display = "none";
+		general.showing = false;
+
 	} else {
 		editButton.innerHTML = "Enter Edit";
-		ponInfo();
-		ponClasif();
+		updateDisplay();
 	}
-
-	generalApply();
 
 }
 function generalSave() {
-
-	generalApply();
+	generalAccept();
+	storeLocal("FASIsettings", readAllSettings());
+}
+function readAllSettings() {
 	let mySettings = {
 		visual: {
 			"urlWebsocket": urlWebsocket.value,
@@ -761,11 +779,7 @@ function generalSave() {
 		mySettings[item.id].text2 = item.text2;
 
 	}
-
-	storeLocal("FASIsettings", mySettings);
-
 	return mySettings;
-
 }
 function generalImpExp() {
 	if (defSettings) {
@@ -792,7 +806,7 @@ function mInfo(tipo) {
 		if (tipo === "visualInfo") {
 			vInfo.innerHTML = "Temporarily apply the modifications";
 		}
-		if (tipo === "aceptInfo") {
+		if (tipo === "acceptInfo") {
 			vInfo.innerHTML = "Apply the modifications and close this window";
 		}
 		if (tipo === "cancelInfo") {
@@ -835,7 +849,7 @@ function exportar() {
 	const mm = ('0' + actualDate.getMinutes()).slice(-2);
 	const ss = ('0' + actualDate.getSeconds()).slice(-2);
 
-	const contenido = JSON.stringify(generalSave());
+	const contenido = JSON.stringify(readAllSettings());
 
 	const nombreArchivo = `${YYYY}${MM}${DD}-${hh}${mm}${ss}-FASI.json`;
 	const tipoArchivo = "text/json;charset=utf-8;";
@@ -847,7 +861,7 @@ function exportar() {
 	enlaceDescarga.download = nombreArchivo;
 	enlaceDescarga.click();
 
-	URL.revokeObjectURL(enlaceDescarga.href);		// clean created URL objet
+	URL.revokeObjectURL(enlaceDescarga.href);
 }
 function importFile(archivo) {
 
@@ -855,9 +869,45 @@ function importFile(archivo) {
 
 	reader.onload = function (event) {
 		importSettings(JSON.parse(event.target.result));
-		ponInfo();
-		ponClasif();
+		updateDisplay();
+		general.style.display = "none";
+		general.showing = false;
 	};
 
 	reader.readAsText(archivo);
+}
+function updateDisplay() {
+	updateInfo();
+	updateClassif();
+	cambiaSuavizar();
+}
+
+/* ----- UNDO FUNCTIONS ----- */
+function populateUndoArray(element) {
+	
+	if (undoPointer < undoArray.length - 1) {
+		undoArray.splice(undoPointer + 1);
+	}
+
+	while (undoArray.length >= 100) {
+		undoArray.shift();
+	}
+
+	undoArray.push(element);
+	undoPointer = undoArray.length - 1;
+
+}
+function undoEdit() {
+	if (undoArray.length > 0 && undoPointer > 0) {
+		undoPointer--;
+		importSettings(undoArray[undoPointer]);
+		updateDisplay();
+	}
+}
+function redoEdit() {
+	if (undoArray.length > 0 && undoPointer < undoArray.length - 1) {
+		undoPointer++;
+		importSettings(undoArray[undoPointer]);
+		updateDisplay();
+	}
 }
