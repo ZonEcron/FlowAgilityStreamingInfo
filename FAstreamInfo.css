@@ -9,6 +9,20 @@ body {
     background-color: black;
     color: white;
     user-select: none;
+    /* --------------------cambios insertar imagen---------------------- */
+
+    margin: 0;
+    padding: 0;
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    /* ----------------------------------------------------------------- */
+
+
 }
 
 p {
@@ -362,6 +376,7 @@ button {
     from {
         opacity: 1;
     }
+
     to {
         opacity: 0;
     }
