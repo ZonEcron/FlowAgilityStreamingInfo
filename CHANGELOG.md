@@ -22,3 +22,6 @@
  - Fixed background color bug when importing
  - Added undo <kbd>Ctrl</kbd> + <kbd>z</kbd> and redo <kbd>Shift</kbd> + <kbd>Ctrl</kbd> + <kbd>z</kbd> up to 100 actions.
  
+  ## 0.5.0 - 2024/01/02
+ - Added background image (overlay) load feature.
+ - Image will be saved, exported and imported along with all other customized settings.

@@ -68,6 +68,8 @@ const croma = document.getElementById("croma");
 const cromaBGcolorInput = document.getElementById("cromaBGcolorInput");
 const editButton = document.getElementById("editButton");
 const impExButton = document.getElementById("impExButton");
+const overlay = document.getElementById('overlay');
+const imagePath = document.getElementById('imagePath');
 
 /* ----- POPUP HELP WINDOW -----*/
 var closeWarningTimeout;
@@ -251,9 +253,10 @@ function eventTriggers() {
 		}
 	}
 	window.ondblclick = function (event) {
+		console.log(event.target);
 		hideMe.style.display = "none";
 		window.getSelection()?.removeAllRanges();
-		if (event.target == croma && !modal.showing) {
+		if ((event.target == croma || event.target == overlay) && !modal.showing) {
 
 			const compStyle = window.getComputedStyle(croma);
 			cromaBGcolorInput.value = rgbaToHex(compStyle.getPropertyValue("background-color"))
@@ -286,6 +289,32 @@ function eventTriggers() {
 			}
 		}
 	});
+	imagePath.addEventListener('change', function (event) {
+
+		const file = event.target.files[0];
+
+		if (file) {
+
+			const reader = new FileReader();
+
+			reader.onload = function (e) {
+
+				const imageUrl = e.target.result;
+				overlay.src = imageUrl;
+
+				const img = new Image();
+				img.onload = function () {
+					overlay.style.width = `${img.width}px`;
+					overlay.style.height = `${img.height}px`;
+				};
+				img.src = imageUrl;
+
+			};
+
+			reader.readAsDataURL(file);
+
+		}
+	});
 }
 
 /* ----- LOCAL STORAGE FUNCTIONS ----- */
@@ -302,6 +331,18 @@ function importSettings(mySettings) {
 		fadingSelector.selectedIndex = mySettings.visual.fading || 1;
 		fadingDelayInput.value = mySettings.visual.fadingDelay || 5000;
 		croma.style.backgroundColor = mySettings.visual.bgColor || "#000000";
+
+		if (isValidBase64(mySettings.visual.imgData)) {
+			overlay.src = "data:image/png;base64," + mySettings.visual.imgData;
+			const img = new Image();
+			img.onload = function () {
+				overlay.style.width = `${img.width}px`;
+				overlay.style.height = `${img.height}px`;
+			};
+			img.src = overlay.src;
+		} else {
+			overlay.src = ""
+		}
 
 		for (let item of dragable) {
 
@@ -345,6 +386,26 @@ function readLocal(keyName) {
 	const mySettings = JSON.parse(jsonString);
 	return mySettings;
 }
+function getBase64Image(img) {
+	var canvas = document.createElement("canvas");
+	canvas.width = img.width;
+	canvas.height = img.height;
+
+	var ctx = canvas.getContext("2d");
+	ctx.drawImage(img, 0, 0);
+
+	var dataURL = canvas.toDataURL("image/png");
+
+	return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+}
+function isValidBase64(str) {
+	try {
+		return btoa(atob(str)) === str;
+	} catch (e) {
+		return false;
+	}
+}
+
 
 /* ----- WEBSOCKET FUNCTIONS ----- */
 function websocFlow() {
@@ -751,12 +812,16 @@ function generalSave() {
 	storeLocal("FASIsettings", readAllSettings());
 }
 function readAllSettings() {
+
+	imgData = getBase64Image(overlay);
+
 	let mySettings = {
 		visual: {
 			"urlWebsocket": urlWebsocket.value,
 			"fading": fadingSelector.selectedIndex,
 			"fadingDelay": fadingDelayInput.value * 1,
-			"bgColor": cromaBGcolorInput.value
+			"bgColor": cromaBGcolorInput.value,
+			imgData
 		}
 	}
 
@@ -884,7 +949,7 @@ function updateDisplay() {
 
 /* ----- UNDO FUNCTIONS ----- */
 function populateUndoArray(element) {
-	
+
 	if (undoPointer < undoArray.length - 1) {
 		undoArray.splice(undoPointer + 1);
 	}

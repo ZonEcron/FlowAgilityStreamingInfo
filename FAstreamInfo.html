@@ -11,6 +11,9 @@
 </head>
 
 <body>
+
+	<img src="" id="overlay"/>
+
 	<div id="croma" class="croma">
 		<h3 id="hideMe" >Double click on any empty space to open options window.</h3>
 		<div class="transparent">
@@ -63,6 +66,11 @@
 				<label>Delay (ms.)</label><input id="fadingDelayInput" type="number" value=5000 /><br>
 			</div><br>
 			
+			<label class="subTitle" style="width: 610px;">Overlay Image</label><br>
+			<div class="subOptions">	
+				<input type="file" id="imagePath" accept="image/*" style="width: 610px; height: 35px;"><br>
+			</div>
+
 			<label class="subTitle" style="width: 610px;">Conection</label><br>
 			<div class="subOptions">	
 				<label>Streaming URL</label><input id="urlWebsocket"/><br>

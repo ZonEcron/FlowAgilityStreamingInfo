@@ -11,14 +11,14 @@ body {
     user-select: none;
     /* --------------------cambios insertar imagen---------------------- */
 
-    margin: 0;
+    /* margin: 0;
     padding: 0;
     background-size: cover;
     background-position: center;
     height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: center; */
 
     /* ----------------------------------------------------------------- */
 
@@ -64,7 +64,9 @@ button {
     display: inline-block;
 }
 
-
+#imagePath{
+    width: 460px;
+}
 
 #urlWebsocket {
     width: 460px;
@@ -150,7 +152,7 @@ button {
     text-align: center;
 }
 
-/* boton conectar en ventana emergente */
+/* botones conectar y cargar en ventana emergente */
 #connFlowButton {
     margin: 0;
     padding: 0;
@@ -380,6 +382,12 @@ button {
     to {
         opacity: 0;
     }
+}
+
+#overlay {
+    position: absolute;
+    top: 0px;
+    left: 0px; 
 }
 
 #hideMe {
