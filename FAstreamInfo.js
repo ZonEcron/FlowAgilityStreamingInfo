@@ -252,7 +252,7 @@ function eventTriggers() {
 			closeWarningTimeout = setTimeout(oInfo, 1500);
 		}
 	}
-	window.ondblclick = function (event) {
+	window.ondblclick = event => {
 		console.log(event.target);
 		hideMe.style.display = "none";
 		window.getSelection()?.removeAllRanges();
@@ -270,13 +270,13 @@ function eventTriggers() {
 			general.showing = true;
 		}
 	}
-	document.addEventListener("mousemove", function (event) {
+	document.addEventListener("mousemove", event => {
 		var cursorX = event.pageX;
 		var cursorY = event.pageY;
 		vInfo.style.left = (cursorX + 50) + "px";
 		vInfo.style.top = cursorY + "px";
 	});
-	document.addEventListener('keydown', (event) => {
+	document.addEventListener('keydown', event => {
 		if (general.editing) {
 			if (event.ctrlKey && event.key === 'z') {
 				undoEdit();
@@ -289,30 +289,11 @@ function eventTriggers() {
 			}
 		}
 	});
-	imagePath.addEventListener('change', function (event) {
-
-		const file = event.target.files[0];
-
-		if (file) {
-
+	imagePath.addEventListener('change', event => {
+		if (event.target.files[0]) {
 			const reader = new FileReader();
-
-			reader.onload = function (e) {
-
-				const imageUrl = e.target.result;
-				overlay.src = imageUrl;
-
-				const img = new Image();
-				img.onload = function () {
-					overlay.style.width = `${img.width}px`;
-					overlay.style.height = `${img.height}px`;
-				};
-				img.src = imageUrl;
-
-			};
-
-			reader.readAsDataURL(file);
-
+			reader.onload = e => overlay.src = e.target.result;
+			reader.readAsDataURL(event.target.files[0]);
 		}
 	});
 }
@@ -331,18 +312,9 @@ function importSettings(mySettings) {
 		fadingSelector.selectedIndex = mySettings.visual.fading || 1;
 		fadingDelayInput.value = mySettings.visual.fadingDelay || 5000;
 		croma.style.backgroundColor = mySettings.visual.bgColor || "#000000";
-
-		if (isValidBase64(mySettings.visual.imgData)) {
-			overlay.src = "data:image/png;base64," + mySettings.visual.imgData;
-			const img = new Image();
-			img.onload = function () {
-				overlay.style.width = `${img.width}px`;
-				overlay.style.height = `${img.height}px`;
-			};
-			img.src = overlay.src;
-		} else {
-			overlay.src = ""
-		}
+		overlay.src = isValidBase64(mySettings.visual.imgData)
+			? "data:image/png;base64," + mySettings.visual.imgData
+			: "";
 
 		for (let item of dragable) {
 
