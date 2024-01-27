@@ -25,3 +25,17 @@
   ## 0.5.0 - 2024/01/02
  - Added background image (overlay) load feature.
  - Image will be saved, exported and imported along with all other customized settings.
+
+ ## 0.6.0 - 2024/01/26
+ - Added hide element feature
+ - Added conmined result table
+ - Table title texts are now customizable
+ - Reorganised table elements to drag all elements inside table at once or all elements in a row
+ - Changing table text color, size or font will change all elements inside table unless element has been previoustly customized. Same on each row.
+ - Added communication with ZonEcron and Galican timers through timer's websocket.
+ - Sync 2 windows of same browser. Save your changes in one window and the other will update.
+ - Added timer (ZonEcron & Galican) communication. 
+ - Added course lenght input
+ - Added max calculated speed to be displayed. (only when timer is connected) 
+ - Added auto connection retry after communication error.
+ 

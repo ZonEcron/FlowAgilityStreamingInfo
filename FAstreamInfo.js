@@ -2,19 +2,46 @@
 var currentTeam = {};
 var nextTeam = null;
 var clasifTeams = {};
+var generalTeams = {};
 
-/* ----- WEBSOCKET AND HEARTBEAT ----- */
+/* ----- FLOW AGILITY WEBSOCKET AND HEARTBEAT ----- */
 var connectionF;
-var conectadoF = false;
-var pingTimer;
-const pingDelay = 25000;
-var noPongTimer;
+var connectedF = WebSocket.CLOSED;
+var flowPingTimeout;
+const flowPingDelay = 25000;
+var noPongTimeout;
 const noPongDelay = 55000;
+var flowReconnTimeout;
+var flowReconnCountD;
+var flowReconnTimeLeft = 5;
+
+/* ----- TIMER WEBSOCKET AND HEARTBEAT ----- */
+var connectionT = null;
+var connectedT = WebSocket.CLOSED;
+var timerPingTimeout;
+const timerPingDelay = 25000;
+var galicanTimerStatus = {
+	time: 0,
+	faults: 0,
+	refusals: 0,
+	elimination: 0,
+	running: false,
+	precission: 1,
+	countdown: 0,
+};
+var inicio = new Date().getTime();
+var tiem = 0;
+var modo = "p";
+var intervalo;
+var timerReconnTimeout;
+var timerReconnCountD;
+var timerReconnTimeLeft = 5;
 
 /* ----- GENERAL WINDOW ----- */
 var defSettings = true;
-var fadingDelay = 5000;
+var fadingDelay = 1000;
 var fadingTimer;
+var imageLoaded = false;
 
 /* ----- INFORMATION DISPLAYED ----- */
 const time = document.getElementById("time");
@@ -45,6 +72,7 @@ const fontInput = document.getElementById("fontInput");
 const sizeInput = document.getElementById("sizeInput");
 const textColorInput = document.getElementById("textColorInput");
 const itemBGcolorInput = document.getElementById("itemBGcolorInput");
+const hiddenCheck = document.getElementById("hiddenCheck");
 const itemHeight = document.getElementById("itemHeight");
 const itemWidth = document.getElementById("itemWidth");
 const posXInput = document.getElementById("posXInput");
@@ -62,6 +90,10 @@ const general = document.getElementById("general");
 const urlWebsocket = document.getElementById("urlWebsocket");
 const connFlowStatus = document.getElementById("connFlowStatus");
 const connFlowButton = document.getElementById("connFlowButton");
+const timerSelector = document.getElementById("timerSelector");
+const timerWebsocket = document.getElementById("timerWebsocket");
+const connTimerStatus = document.getElementById("connTimerStatus");
+const connTimerButton = document.getElementById("connTimerButton");
 const fadingSelector = document.getElementById("fadingSelector");
 const fadingDelayInput = document.getElementById("fadingDelayInput");
 const croma = document.getElementById("croma");
@@ -69,7 +101,18 @@ const cromaBGcolorInput = document.getElementById("cromaBGcolorInput");
 const editButton = document.getElementById("editButton");
 const impExButton = document.getElementById("impExButton");
 const overlay = document.getElementById('overlay');
-const imagePath = document.getElementById('imagePath');
+const imageFile = document.getElementById('imageFile');
+const imageName = document.getElementById('imageName');
+const imageStatus = document.getElementById('imageStatus');
+const loadImgButton = document.getElementById('loadImgButton');
+const maxVel = document.getElementById("maxVel");
+const metros = document.getElementById("metros");
+
+/* ----- TABLES -----*/
+const scoreTable = document.getElementById("scoreTable");
+const scoreTableTitle = document.getElementById("scoreTableTitle");
+const scoreGeneral = document.getElementById("scoreGeneral");
+const scoreGeneralTitle = document.getElementById("scoreGeneralTitle");
 
 /* ----- POPUP HELP WINDOW -----*/
 var closeWarningTimeout;
@@ -95,15 +138,31 @@ function main() {
 	eventTriggers();
 	updateDisplay();
 	populateUndoArray(readAllSettings());
-
 }
 function defaultTextsAndFlags() {
 
 	/* ----- DEFAULT BEFORE AND AFTER TEXTS OF SOME ELEMENTS -----*/
 	faults.text1 = "F";
 	refusals.text1 = "R";
-	eliminated.text1 = "ELIMINATED";
+	eliminated.text1 = eliminated.innerText;
 	roundType.text2 = " /";
+
+	/* ----- DEFAULT TITLES FOR TABLES AND ROWS -----*/
+	scoreTable.text1 = scoreTableTitle.innerText;
+	scoreGeneral.text1 = scoreGeneralTitle.innerText;
+
+	//Table row titles
+	for (let i = 0; i < 6; i++) {
+		document.getElementById("tabRow" + i).text1 = document.getElementById("tabPos" + i + "o").innerText;
+		document.getElementById("genRow" + i).text1 = document.getElementById("genPos" + i + "o").innerText;
+	}
+
+	// Table column titles
+	const mid = ["Dog", "Handler", "Penalty", "Time"];
+	for (let midIndex = 0; midIndex < 4; midIndex++) {
+		document.getElementById("tab" + mid[midIndex] + "0o").text1 = document.getElementById("tab" + mid[midIndex] + "0o").innerText;
+		document.getElementById("gen" + mid[midIndex] + "0o").text1 = document.getElementById("gen" + mid[midIndex] + "0o").innerText;
+	}
 
 	/* ----- DEFAULT INFO DISPLAYED -----*/
 	currentTeam.start_order = "00";
@@ -130,6 +189,13 @@ function defaultTextsAndFlags() {
 			total_penalization: "00.0" + j,
 			time: `${j}${j}.${j}${j}`
 		};
+		generalTeams[i] = {
+			classification: j,
+			dog_family_name: "Dog " + j,
+			handler: "Handler " + j,
+			total_penalization: "00.0" + j,
+			time: `${j}${j}.${j}${j}`
+		};
 	}
 
 	/* ----- FLAGS -----*/
@@ -140,7 +206,7 @@ function defaultTextsAndFlags() {
 }
 function animablesAndDragables() {
 	/* ----- CONFIG ANIMATION TO ANIMABLE (FADING) ELEMENTS  ----- */
-	for (let item of animable) {
+	for (const [index, item] of Array.from(animable).entries()) {
 
 		item.addEventListener("animationstart", () => {
 			//console.log('animation started');
@@ -151,9 +217,9 @@ function animablesAndDragables() {
 			item.style["-webkit-animation-direction"] = "reverse";
 
 			currentTeam = nextTeam;
-			updateInfo();
-
+			if (index === 0) updateInfo();
 			//console.log('animation iterated');
+
 		});
 
 		item.addEventListener("animationend", () => {
@@ -171,35 +237,31 @@ function animablesAndDragables() {
 		item.text2old = item.text2;
 		makeDragable(item);
 		item.addEventListener("dblclick", () => {
+
 			if (general.editing && !general.showing && !modal.showing) {
 
 				modalTitle.innerHTML = "Properties " + item.id;
+
+				textsTitle.innerHTML = "Before and After Texts";
+				labelText1.innerHTML = "Before";
+				labelText2.innerHTML = "After";
+
+				labelText2.style.visibility = "visible";
+				text2.style.visibility = "visible";
 
 				if (item.id === "eliminated") {
 					textsTitle.innerHTML = "Text for";
 					labelText1.innerHTML = "Eliminated";
 					text2.style.visibility = "hidden"
 					labelText2.style.visibility = "hidden";
-				} else {
-					textsTitle.innerHTML = "Before and After Texts";
-					labelText1.innerHTML = "Before";
-					labelText2.innerHTML = "After";
-					text2.style.visibility = "visible"
-					labelText2.style.visibility = "visible";
 				}
 
-				if (item.id === "scoreTable") {
-					textsTitle.style.visibility = "hidden";
-					labelText1.style.visibility = "hidden";
+				// Tabla, fila o titulos de columna
+				if (item.classList.contains('tableCont') || item.classList.contains('tableRow') || item.classList.contains('tableCoTi')) {
+					textsTitle.innerHTML = "Text for";
+					labelText1.innerHTML = "Table title";
+					text2.style.visibility = "hidden"
 					labelText2.style.visibility = "hidden";
-					text1.style.visibility = "hidden"
-					text2.style.visibility = "hidden";
-				} else {
-					textsTitle.style.visibility = "visible";
-					labelText1.style.visibility = "visible";
-					labelText2.style.visibility = "visible";
-					text1.style.visibility = "visible"
-					text2.style.visibility = "visible";
 				}
 
 				dragProperties(item);
@@ -209,6 +271,7 @@ function animablesAndDragables() {
 				sizeInput.value = item.fontSize;
 				textColorInput.value = item.color;
 				itemBGcolorInput.value = item.bgColor;
+				hiddenCheck.checked = item.hiddenCheck;
 
 				itemHeight.value = item.height;
 				itemWidth.value = item.width;
@@ -238,6 +301,14 @@ function animablesAndDragables() {
 }
 function eventTriggers() {
 	/* ----- EVENTS -----*/
+	window.addEventListener('storage', () => {
+		const storedSettings = readLocal("FASIsettings");
+		if (storedSettings) {
+			importSettings(storedSettings);
+		} else {
+			location.reload();
+		}
+	});
 	window.onclick = function (event) {
 		if (modal.showing && event.target != modal && !modal.contains(event.target)) {
 			vInfo.style.display = "block";
@@ -253,7 +324,6 @@ function eventTriggers() {
 		}
 	}
 	window.ondblclick = event => {
-		console.log(event.target);
 		hideMe.style.display = "none";
 		window.getSelection()?.removeAllRanges();
 		if ((event.target == croma || event.target == overlay) && !modal.showing) {
@@ -265,9 +335,12 @@ function eventTriggers() {
 			general.fadingEnabled = fadingSelector.selectedIndex;
 			general.fadingDelay = fadingDelayInput.value;
 			general.bgColor = cromaBGcolorInput.value;
+			general.imageName = imageName.value;
 
 			general.style.display = "block";
 			general.showing = true;
+
+
 		}
 	}
 	document.addEventListener("mousemove", event => {
@@ -289,7 +362,7 @@ function eventTriggers() {
 			}
 		}
 	});
-	imagePath.addEventListener('change', event => {
+	imageFile.addEventListener('change', event => {
 		if (event.target.files[0]) {
 			const reader = new FileReader();
 			reader.onload = e => overlay.src = e.target.result;
@@ -306,57 +379,74 @@ function importSettings(mySettings) {
 		toggleImpExp();
 
 		urlWebsocket.value = mySettings.visual.urlWebsocket || "";
-
 		if (urlWebsocket.value) websocFlow();
 
-		fadingSelector.selectedIndex = mySettings.visual.fading || 1;
+		timerWebsocket.value = mySettings.visual.timerWebsocket || "";
+		if (timerWebsocket.value) websocTimer();
+
+		fadingSelector.selectedIndex = mySettings.visual.fadingEnabled || 1;
 		fadingDelayInput.value = mySettings.visual.fadingDelay || 5000;
 		croma.style.backgroundColor = mySettings.visual.bgColor || "#000000";
-		overlay.src = isValidBase64(mySettings.visual.imgData)
-			? "data:image/png;base64," + mySettings.visual.imgData
-			: "";
+
+		metros.value = mySettings.visual.metros || 220;
+		maxVel.value = mySettings.visual.maxVel || 9.9;
+
+		imageName.value = mySettings.visual.imgName || "";
+
+		if (isValidBase64(mySettings.visual.imgData)) {
+			overlay.src = "data:image/png;base64," + mySettings.visual.imgData;
+			imageLoaded = true;
+			imageStatus.innerHTML = "Loaded";
+			imageStatus.style.color = "green";
+		}
 
 		for (let item of dragable) {
 
-			item.style.fontFamily = mySettings[item.id].fontFamily;
-			item.style.fontSize = mySettings[item.id].fontSize * 1 + 'px';
-			item.style.color = mySettings[item.id].color;
-			item.style.backgroundColor = mySettings[item.id].bgColor;
+			item.style.fontFamily = mySettings[item.id] && mySettings[item.id].fontFamily || item.style.fontFamily;
+			item.style.fontSize = mySettings[item.id] && mySettings[item.id].fontSize * 1 + 'px' || item.style.fontSize;
+			item.style.color = mySettings[item.id] && mySettings[item.id].color || item.style.color;
+			item.style.backgroundColor = mySettings[item.id] && mySettings[item.id].bgColor || item.style.backgroundColor;
+			item.hidden = mySettings[item.id] && mySettings[item.id].hidden || item.hidden;
 
-			item.style.height = mySettings[item.id].height * 1 + 'px';
-			item.style.width = mySettings[item.id].width * 1 + 'px';
-			item.style.left = mySettings[item.id].posX * 1 + 'px';
-			item.style.top = mySettings[item.id].posY * 1 + 'px';
-			item.style.zIndex = mySettings[item.id].posZ * 1;
+			item.style.height = mySettings[item.id] && mySettings[item.id].height * 1 + 'px' || item.style.height;
+			item.style.width = mySettings[item.id] && mySettings[item.id].width * 1 + 'px' || item.style.width;
+			item.style.left = mySettings[item.id] && mySettings[item.id].posX * 1 + 'px' || item.style.left;
+			item.style.top = mySettings[item.id] && mySettings[item.id].posY * 1 + 'px' || item.style.top;
+			item.style.zIndex = mySettings[item.id] && mySettings[item.id].posZ * 1 || item.style.zIndex;
 
-			item.fontFamily = mySettings[item.id].fontFamily;
-			item.fontSize = mySettings[item.id].fontSize;
-			item.color = mySettings[item.id].color;
-			item.bgColor = mySettings[item.id].bgColor;
+			item.fontFamily = mySettings[item.id] && mySettings[item.id].fontFamily || item.fontFamily;
+			item.fontSize = mySettings[item.id] && mySettings[item.id].fontSize || item.fontSize;
+			item.color = mySettings[item.id] && mySettings[item.id].color || item.color;
+			item.bgColor = mySettings[item.id] && mySettings[item.id].bgColor || item.bgColor;
+			item.hiddenCheck = mySettings[item.id] && mySettings[item.id].hidden || item.hiddenCheck;
 
-			item.height = mySettings[item.id].height;
-			item.width = mySettings[item.id].width;
-			item.posX = mySettings[item.id].posX;
-			item.posY = mySettings[item.id].posY;
-			item.posZ = mySettings[item.id].posZ;
+			item.height = mySettings[item.id] && mySettings[item.id].height || item.height;
+			item.width = mySettings[item.id] && mySettings[item.id].width || item.width;
+			item.posX = mySettings[item.id] && mySettings[item.id].posX || item.posX;
+			item.posY = mySettings[item.id] && mySettings[item.id].posY || item.posY;
+			item.posZ = mySettings[item.id] && mySettings[item.id].posZ || item.posZ;
 
-			item.text1 = mySettings[item.id].text1;
-			item.text2 = mySettings[item.id].text2;
+			item.text1 = mySettings[item.id] && mySettings[item.id].text1 || item.text1;
+			item.text2 = mySettings[item.id] && mySettings[item.id].text2 || item.text2;
 
 		}
 
-		cambiaSuavizar();
-	}
+		changeSmoothing();
 
+	}
 }
 function storeLocal(keyName, mySettings) {
 	const jsonString = JSON.stringify(mySettings);
 	localStorage.setItem(keyName, jsonString);
 }
 function readLocal(keyName) {
-	const jsonString = localStorage.getItem(keyName);
-	const mySettings = JSON.parse(jsonString);
-	return mySettings;
+	try {
+		const jsonString = localStorage.getItem(keyName);
+		const mySettings = JSON.parse(jsonString);
+		return mySettings;
+	} catch (error) {
+		return null;
+	}
 }
 function getBase64Image(img) {
 	var canvas = document.createElement("canvas");
@@ -378,54 +468,89 @@ function isValidBase64(str) {
 	}
 }
 
-
-/* ----- WEBSOCKET FUNCTIONS ----- */
+/* ----- WEBSOCKET FLOW AGILITY FUNCTIONS ----- */
 function websocFlow() {
 
 	connectionF = new WebSocket('wss://' + urlWebsocket.value);
+
+	urlWebsocket.disabled = true;
+
+	clearInterval(flowReconnCountD);
+	connectedF = connectionF.readyState;
+
+	connFlowStatus.innerHTML = "Trying";
+	connFlowStatus.style.color = "orange";
+	connFlowButton.innerHTML = "Cancel";
+
 	connectionF.onopen = () => {
+
 		connectionF.send("ping");
 		connectionF.send("streaming_data");
-		conectadoF = true;
-		connFlowStatus.innerHTML = "Conectado";
+
+		clearInterval(flowReconnCountD);
+		connectedF = connectionF.readyState;
+
+		connFlowStatus.innerHTML = "Connected";
 		connFlowStatus.style.color = "green";
-		connFlowButton.innerHTML = "Desconectar";
+		connFlowButton.innerHTML = "Disconnect";
 	};
+
 	connectionF.onmessage = (mensaje) => {
 
 		if (mensaje.data === 'pong') {
 
-			clearTimeout(noPongTimer);
-			noPongTimer = setTimeout(noPong, noPongDelay);
+			clearTimeout(noPongTimeout);
+			noPongTimeout = setTimeout(noPong, noPongDelay);
 
-			clearTimeout(pingTimer);
-			pingTimer = setTimeout(() => {
+			clearTimeout(flowPingTimeout);
+			flowPingTimeout = setTimeout(() => {
 				connectionF.send("ping");
-			}, pingDelay);
+			}, flowPingDelay);
 
 		} else {
 
-			const parsedData = JSON.parse(mensaje.data);
+			const parsedData = checkJSON(mensaje.data);
 
-			if (parsedData.run) {
+			if (parsedData && parsedData.run) {
 
 				if (parsedData.run.playset) {
+
+					metros.value = parseInt(parsedData.run.length) || metros.value;
+
 					currentTeam = parsedData.run.playset;
 					currentTeam.trialName = parsedData.run.trial_name || "----- -- -----";
 					currentTeam.gradeSize = parsedData.run.name || "-- / -";
 					currentTeam.roundType = parsedData.run.type || "--";
+
 					updateInfo();
+
+					if (connectedT === WebSocket.OPEN) {
+
+						const faults = parseInt(currentTeam.faults) || 0;
+						const refusals = parseInt(currentTeam.refusals) || 0;
+						const elimination = currentTeam.disqualification === "elim" ? 1 : 0;
+
+						const objSend = {
+							faults,
+							refusals,
+							elimination,
+						}
+						const msgSend = JSON.stringify(objSend)
+
+						connectionT.send(msgSend);
+
+					}
+
 				} else {
 					currentTeam = null;
 				}
 
-				if (parsedData.run.results_best) {
-					clasifTeams = parsedData.run.results_best;
-					updateClassif();
-				}
+				if (parsedData.run.results_best) clasifTeams = parsedData.run.results_best;
+				if (parsedData.run.results_combined) generalTeams = parsedData.run.results_combined;
+				updateClassif();
 			}
 
-			if (parsedData.run_ready) {
+			if (parsedData && parsedData.run_ready) {
 				if (parsedData.run_ready.playset) {
 					nextTeam = parsedData.run_ready.playset;
 					nextTeam.trialName = parsedData.run_ready.trial_name || "----- -- -----";
@@ -448,20 +573,54 @@ function websocFlow() {
 			}
 		}
 	};
+
+	connectionF.onerror = () => {
+
+		if (connectedF !== WebSocket.CLOSED) {
+
+			clearInterval(flowReconnCountD);
+			connectedF = connectionF.readyState;
+
+			connFlowStatus.innerHTML = "Retrying in 5s.";
+			connFlowStatus.style.color = "red";
+			connFlowButton.innerHTML = "Cancel";
+
+			flowReconnTimeLeft = 5;
+			flowReconnCountD = setInterval(reconnFlow, 1000);
+			flowReconnTimeout = setTimeout(websocFlow, 5000);
+
+		}
+
+	}
+
 	connectionF.onclose = () => {
-		clearTimeout(noPongTimer);
-		conectadoF = false;
-		connFlowStatus.innerHTML = "Desconectado";
-		connFlowStatus.style.color = "red";
-		connFlowButton.innerHTML = "Conectar";
+		clearTimeout(noPongTimeout);
 	}
 }
 function connFlow() {
-	if (conectadoF) {
+	if (connectedF !== WebSocket.CLOSED) {
+
 		connectionF.close();
+
+		urlWebsocket.disabled = false;
+
+		clearTimeout(flowReconnTimeout);
+		clearInterval(flowReconnCountD);
+
+		connectedF = WebSocket.CLOSED;
+		connFlowStatus.innerHTML = "Disconnected";
+		connFlowStatus.style.color = "red";
+		connFlowButton.innerHTML = "Connect";
+
 	} else {
 		websocFlow();
 	}
+}
+function reconnFlow() {
+	flowReconnTimeLeft--;
+	connFlowStatus.innerHTML = `Retrying in ${flowReconnTimeLeft}s.`;
+	connFlowStatus.style.color = "red";
+	connFlowButton.innerHTML = "Cancel";
 }
 function noPing() {
 	location.reload();
@@ -472,11 +631,11 @@ function noPong() {
 function updateInfo() {
 
 	eliminated.innerHTML = eliminated.text1;
+	scoreTableTitle.innerText = scoreTable.text1;
+	scoreGeneralTitle.innerText = scoreGeneral.text1;
 
 	if (!general.editing) {
 		eliminated.style.visibility = "hidden";
-		time.style.visibility = "hidden";
-		speed.style.visibility = "hidden";
 	}
 
 	if (currentTeam) {
@@ -491,23 +650,15 @@ function updateInfo() {
 		gradeSize.innerHTML = `${gradeSize.text1}${currentTeam.gradeSize}${gradeSize.text2}`;
 		roundType.innerHTML = `${roundType.text1}${currentTeam.roundType}${roundType.text2}`;
 
-		if (currentTeam.status_string === "calculated") {
+		if (currentTeam.time === "") currentTeam.time = "--.--"
+		if (currentTeam.speed === "") currentTeam.speed = "-.-- m/s"
+
+		if (connectedT !== WebSocket.OPEN || currentTeam.status_string === "ready") {
 			time.innerHTML = `${time.text1}${currentTeam.time}${time.text2}`;
 			speed.innerHTML = `${speed.text1}${currentTeam.speed}${speed.text2}`;
-		} else {
-			time.innerHTML = `${time.text1}00.00${time.text2}`;
-			speed.innerHTML = `${speed.text1}0.00 m/s${speed.text2}`;
 		}
 
 		if (!general.editing) {
-
-			if (currentTeam.status_string === "calculated") {
-				time.style.visibility = "visible";
-				speed.style.visibility = "visible";
-			} else {
-				time.style.visibility = "hidden";
-				speed.style.visibility = "hidden";
-			}
 
 			if (currentTeam.disqualification === "elim") {
 				faults.style.visibility = "hidden";
@@ -523,31 +674,255 @@ function updateInfo() {
 }
 function updateClassif() {
 
-	for (let i = 0; i < 5; i++) {
+	//Table row titles
+	for (let i = 0; i < 6; i++) {
+		document.getElementById("tabPos" + i + "o").innerText = document.getElementById("tabRow" + i).text1;
+		document.getElementById("genPos" + i + "o").innerText = document.getElementById("genRow" + i).text1;
+	}
 
-		const tabDog = document.getElementById("tabDog" + (i + 1) + "o");
-		const tabHandler = document.getElementById("tabHandler" + (i + 1) + "o");
-		const tabPenalty = document.getElementById("tabPenalty" + (i + 1) + "o");
-		const tabTime = document.getElementById("tabTime" + (i + 1) + "o");
+	const pre = ["tab", "gen"];
+	const mid = ["Dog", "Handler", "Penalty", "Time"];
 
-		const hayInfo = clasifTeams[i]
-			? clasifTeams[i].classification
-				? true
-				: false
-			: false;
-
-		if (hayInfo) {
-			tabDog.innerHTML = `${tabDog.text1}${clasifTeams[i].dog_family_name}${tabDog.text2}`;
-			tabHandler.innerHTML = `${tabHandler.text1}${clasifTeams[i].handler}${tabHandler.text2}`;
-			tabPenalty.innerHTML = `${tabPenalty.text1}${clasifTeams[i].total_penalization}${tabPenalty.text2}`;
-			tabTime.innerHTML = `${tabTime.text1}${clasifTeams[i].time}${tabTime.text2}`;
-		} else {
-			tabDog.innerHTML = `${tabDog.text1}-----${tabDog.text2}`;
-			tabHandler.innerHTML = `${tabHandler.text1}-----${tabHandler.text2}`;
-			tabPenalty.innerHTML = `${tabPenalty.text1}- -.- -${tabPenalty.text2}`;
-			tabTime.innerHTML = `${tabTime.text1}- -.- -${tabTime.text2}`;
+	// Table column titles
+	for (let preIndex = 0; preIndex < 2; preIndex++) {
+		for (let midIndex = 0; midIndex < 4; midIndex++) {
+			document.getElementById(pre[preIndex] + mid[midIndex] + "0o").innerText = document.getElementById(pre[preIndex] + mid[midIndex] + "0o").text1;
 		}
+	}
+
+	// Dinamically updated table elements
+	for (let preIndex = 0; preIndex < 2; preIndex++) {
+		for (let i = 0; i < 5; i++) {
+
+			const tableDog = document.getElementById(pre[preIndex] + "Dog" + (i + 1) + "o");
+			const tableHandler = document.getElementById(pre[preIndex] + "Handler" + (i + 1) + "o");
+			const tablePenalty = document.getElementById(pre[preIndex] + "Penalty" + (i + 1) + "o");
+			const tableTime = document.getElementById(pre[preIndex] + "Time" + (i + 1) + "o");
+
+			const hayInfo = clasifTeams[i]
+				? clasifTeams[i].classification
+					? true
+					: false
+				: false;
+
+			if (hayInfo) {
+				tableDog.innerHTML = `${tableDog.text1}${clasifTeams[i].dog_family_name}${tableDog.text2}`;
+				tableHandler.innerHTML = `${tableHandler.text1}${clasifTeams[i].handler}${tableHandler.text2}`;
+				tablePenalty.innerHTML = `${tablePenalty.text1}${clasifTeams[i].total_penalization}${tablePenalty.text2}`;
+				tableTime.innerHTML = `${tableTime.text1}${clasifTeams[i].time}${tableTime.text2}`;
+			} else {
+				tableDog.innerHTML = `${tableDog.text1}-----${tableDog.text2}`;
+				tableHandler.innerHTML = `${tableHandler.text1}-----${tableHandler.text2}`;
+				tablePenalty.innerHTML = `${tablePenalty.text1}- -.- -${tablePenalty.text2}`;
+				tableTime.innerHTML = `${tableTime.text1}- -.- -${tableTime.text2}`;
+			}
+		};
+	}
+}
+
+/* ----- WEBSOCKET TIMER FUNCTIONS ----- */
+function websocTimer() {
+
+	if (timerSelector.selectedIndex === 0) {
+		connectionT = new WebSocket('ws://' + timerWebsocket.value);
+	} else if (timerSelector.selectedIndex === 1) {
+		connectionT = new WebSocket('ws://' + timerWebsocket.value + "/timerws");
+	}
+
+	timerSelector.disabled = true;
+	timerWebsocket.disabled = true;
+
+	clearInterval(timerReconnCountD);
+	connectedT = connectionT.readyState;
+
+	connTimerStatus.innerHTML = "Trying";
+	connTimerStatus.style.color = "orange";
+	connTimerButton.innerHTML = "Cancel";
+
+	connectionT.onopen = () => {
+
+		clearInterval(timerReconnCountD);
+		connectedT = connectionT.readyState;
+
+		connTimerStatus.innerHTML = "Connected";
+		connTimerStatus.style.color = "green";
+		connTimerButton.innerHTML = "Disconnect";
+
 	};
+
+	connectionT.onmessage = (message) => {
+
+		if (timerSelector.selectedIndex === 0) {
+
+			const data = message.data;
+
+			if (mensaje.data == '__ping__') {
+				clearTimeout(timerPingTimeout);
+				timerPingTimeout = setTimeout(noTimerPing, timerPingDelay);
+				return;
+			}
+
+			const format = /^[A-Za-z]\d{10}$/;
+
+			if (format.test(data)) {
+
+				tiem = parseInt(data.slice(-7), 10);
+				inicio = new Date().getTime() - tiem;
+				clearInterval(intervalo);
+				
+				if (data[0] === 'i') {
+					modo = 'i';
+					reloj(tiem, 0);
+					ponVelocidad(tiem);
+					intervalo = setInterval(() => { crono() }, 100);
+				} else if (data[0] === 'p') {
+					modo = 'p';
+					reloj(tiem, 1);
+					ponVelocidad(tiem);
+				} else {
+					modo = 'p';
+					ponVelocidad(0);
+					reloj(0, 0);
+				}
+
+			}
+
+
+		} else if (timerSelector.selectedIndex === 1) {
+
+			// {"time":42764, "faults":0, "refusals":1, "elimination":0, "running":false, "precission":1, "countdown":0,"uptime":9653501}
+			const parsedData = checkJSON(message.data);
+
+			if (parsedData) {
+
+				for (var property in galicanTimerStatus) {
+					if (parsedData.hasOwnProperty(property)) {
+						galicanTimerStatus[property] = parsedData[property];
+					}
+				}
+
+				if (galicanTimerStatus.countdown === 0) {
+
+					if (galicanTimerStatus.running === true) {
+
+						inicio = new Date().getTime() - galicanTimerStatus.time;
+
+						if (modo !== 'i') {
+							tiem = galicanTimerStatus.time;
+							modo = 'i';
+							clearInterval(intervalo);
+							ponVelocidad(tiem);
+							reloj(tiem, 0);
+							intervalo = setInterval(() => { crono() }, 100);
+						}
+					}
+
+					if (galicanTimerStatus.running === false && modo !== 'p') {
+						modo = 'p';
+						tiem = Math.round(galicanTimerStatus.time / 10) * 10;
+						inicio = new Date().getTime() - tiem;
+						clearInterval(intervalo);
+						ponVelocidad(tiem);
+						reloj(tiem, 1);
+					}
+
+				} else {
+					clearInterval(intervalo);
+					ponVelocidad(0);
+					reloj(0, 0);
+				}
+			}
+		}
+	}
+
+	connectionT.onerror = () => {
+		if (connectedT !== WebSocket.CLOSED) {
+
+			clearInterval(timerReconnCountD);
+			connectedT = connectionT.readyState;
+			connTimerStatus.innerHTML = "Trying in 5s.";
+			connTimerStatus.style.color = "orange";
+			connTimerButton.innerHTML = "Cancel";
+
+			timerReconnTimeLeft = 5;
+			timerReconnCountD = setInterval(reconnTimer, 1000);
+			timerReconnTimeout = setTimeout(websocTimer, 5000);
+		}
+
+	}
+
+	connectionT.onclose = () => {
+		clearInterval(intervalo);
+	}
+}
+function connTimer() {
+	if (connectedT !== WebSocket.CLOSED) {
+
+		connectionT.close();
+
+		timerSelector.disabled = false;
+		timerWebsocket.disabled = false;
+
+		clearTimeout(timerReconnTimeout);
+		clearInterval(timerReconnCountD);
+		connectedT = WebSocket.CLOSED;
+		connTimerStatus.innerHTML = "Disconnected";
+		connTimerStatus.style.color = "red";
+		connTimerButton.innerHTML = "Connect";
+
+	} else {
+		websocTimer();
+	}
+}
+function reconnTimer() {
+	timerReconnTimeLeft--;
+	connTimerStatus.innerHTML = `Trying in ${timerReconnTimeLeft}s.`;
+	connTimerStatus.style.color = "orange";
+	connTimerButton.innerHTML = "Cancel";
+}
+function noTimerPing() {
+	location.reload();
+}
+function checkJSON(JSONstring) {
+	try {
+		const parsedData = JSON.parse(JSONstring);
+		return parsedData;
+	} catch (error) {
+		return null;
+	}
+}
+function crono() {
+	let tiempoActual = new Date().getTime() - inicio;
+	reloj(tiempoActual, 0);
+	ponVelocidad(tiempoActual);
+}
+function reloj(muestraTiempo, muestraCentesimas) {
+	let valor = "0.00";
+	if (muestraTiempo > 0) {
+		let enteros = Math.floor(muestraTiempo / 1000);
+		let decimal = ("000" + muestraTiempo % 1000).slice(-3);
+
+		if (muestraCentesimas) {
+			decimal = decimal.substring(0, 2);
+		} else {
+			decimal = decimal.substring(0, 1) + "0";
+		}
+
+		valor = enteros + "." + decimal
+	}
+	time.innerHTML = `${time.text1}${valor}${time.text2}`;
+}
+function ponVelocidad(miTiempo) {
+
+	let velo = "-.--";
+
+	if (miTiempo > 5000) {
+		velo = (metros.value / (miTiempo / 1000)).toFixed(1);
+		if (velo > (maxVel.value * 1)) velo = "-.--";
+	}
+
+	speed.innerHTML = `${speed.text1}${velo} m/s${speed.text2}`;
+
 }
 
 /* ----- DRAGABLE ELEMENTS FUNTIONS ----- */
@@ -626,6 +1001,7 @@ function dragProperties(e) {
 	e.fontSize = parseInt(compStyle.getPropertyValue("font-size"), 10);
 	e.color = rgbaToHex(compStyle.getPropertyValue("color"));
 	e.bgColor = rgbaToHex(compStyle.getPropertyValue("background-color"));
+	e.hiddenCheck = e.hiddenCheck || false;
 
 	e.height = parseInt(compStyle.getPropertyValue("height"), 10);
 	e.width = parseInt(compStyle.getPropertyValue("width"), 10);
@@ -654,6 +1030,7 @@ function modalApply() {
 	modal.elemento.style.fontSize = sizeInput.value * 1 + 'px';
 	modal.elemento.style.color = textColorInput.value;
 	modal.elemento.style.backgroundColor = itemBGcolorInput.value;
+	modal.elemento.hiddenCheck = hiddenCheck.checked;
 
 	modal.elemento.style.height = itemHeight.value * 1 + 'px';
 	modal.elemento.style.width = itemWidth.value * 1 + 'px';
@@ -670,11 +1047,12 @@ function modalApply() {
 	modal.elemento.text1 = text1.value;
 	modal.elemento.text2 = text2.value;
 
-	if (modal.elemento.id.startsWith("tab")) {
+	if (modal.elemento.id.startsWith("tab") || modal.elemento.id.startsWith("gen")) {
 		updateClassif();
 	} else {
 		updateInfo();
 	}
+
 }
 function modalAccept() {
 	modalApply();
@@ -683,7 +1061,6 @@ function modalAccept() {
 	modal.style.display = "none";
 	modal.showing = false;
 	populateUndoArray(readAllSettings());
-
 }
 function modalCancel() {
 
@@ -719,7 +1096,7 @@ function modalCancel() {
 function generalApply() {
 	toggleImpExp();
 	croma.style.backgroundColor = cromaBGcolorInput.value;
-	cambiaSuavizar();
+	changeSmoothing();
 }
 function generalAccept() {
 	generalApply();
@@ -736,9 +1113,10 @@ function generalCancel() {
 		general.style.display = "none";
 		general.showing = false;
 		urlWebsocket.value = general.urlWebsocket;
-		fadingSelector.selectedIndex = general.fading;
+		fadingSelector.selectedIndex = general.fadingEnabled;
 		fadingDelayInput.value = general.fadingDelay;
 		croma.style.backgroundColor = general.bgColor;
+		imageName.value = general.imageName;
 
 	}
 
@@ -768,6 +1146,7 @@ function generalEdit() {
 
 		for (let item of dragable) {
 			item.style.visibility = "visible";
+			item.hidden = false;
 		}
 
 		general.style.display = "none";
@@ -775,9 +1154,9 @@ function generalEdit() {
 
 	} else {
 		editButton.innerHTML = "Enter Edit";
+		for (let item of dragable) item.hidden = item.hiddenCheck;
 		updateDisplay();
 	}
-
 }
 function generalSave() {
 	generalAccept();
@@ -789,10 +1168,18 @@ function readAllSettings() {
 
 	let mySettings = {
 		visual: {
-			"urlWebsocket": urlWebsocket.value,
-			"fading": fadingSelector.selectedIndex,
+
+			"fadingEnabled": fadingSelector.selectedIndex,
 			"fadingDelay": fadingDelayInput.value * 1,
+
 			"bgColor": cromaBGcolorInput.value,
+			"metros": metros.value,
+			"maxVel": maxVel.value,
+
+			"urlWebsocket": urlWebsocket.value,
+			"timerWebsocket": timerWebsocket.value,
+
+			"imgName": imageName.value,
 			imgData
 		}
 	}
@@ -807,6 +1194,7 @@ function readAllSettings() {
 		mySettings[item.id].fontSize = item.fontSize;
 		mySettings[item.id].color = item.color;
 		mySettings[item.id].bgColor = item.bgColor;
+		mySettings[item.id].hidden = item.hidden;
 		mySettings[item.id].height = item.height;
 		mySettings[item.id].width = item.width;
 		mySettings[item.id].posX = item.posX;
@@ -822,17 +1210,39 @@ function generalImpExp() {
 	if (defSettings) {
 		JSONfile.click();
 	} else {
-		exportar();
+		exportFile();
 	}
 }
 function toggleImpExp() {
 	defSettings = false;
-	impExButton.innerHTML = "Exportar";
+	impExButton.innerHTML = "Export";
 }
-function cambiaSuavizar() {
+function changeSmoothing() {
 	fadingDelay = fadingDelayInput.value * 1 || 5000;
 	if (!fadingSelector.selectedIndex) {
 		clearTimeout(fadingTimer);
+	}
+}
+function loadImg() {
+	if (imageLoaded) {
+		overlay.src = "";
+		imageFile.value = "";
+		imageName.value = "";
+		imageLoaded = false;
+		imageStatus.innerHTML = "No File";
+		imageStatus.style.color = "red";
+		loadImgButton.innerHTML = "Load";
+	} else {
+		imageFile.click();
+	}
+}
+function displayFileName(input) {
+	if (input.files.length > 0) {
+		imageName.value = input.files[0].name;
+		imageLoaded = true;
+		imageStatus.innerHTML = "Loaded";
+		imageStatus.style.color = "green";
+		loadImgButton.innerHTML = "Delete";
 	}
 }
 
@@ -864,7 +1274,23 @@ function mInfo(tipo) {
 		if (tipo === "impExInfo") {
 			vInfo.innerHTML = "Export current config or import previous exported. Import only available with reseted settings.";
 		}
+		if (tipo === "timer") {
+			vInfo.innerHTML = "Timer's local websocket IP address. i.e: 192.168.4.1";
+		}
+		if (tipo === "bgColor") {
+			vInfo.innerHTML = "Background color in HEX code. Last two digits 00 will make it transparent. i.e. #FFFFFF00";
+		}
+		if (tipo === "fadingDly") {
+			vInfo.innerHTML = "Delay in milliseconds to change displayed info when a dog final score is entered in Flow Agility platform.";
+		}
+		if (tipo === "length") {
+			vInfo.innerHTML = "Course length to calculate speed in real time as time increases when local timer is connected.";
+		}
+		if (tipo === "maxVel") {
+			vInfo.innerHTML = "Maximun speed to be displayed in real time as time increases when local timer is connected.";
+		}
 	}, 1500);
+
 }
 function oInfo() {
 	clearTimeout(infoTimeout);
@@ -875,7 +1301,7 @@ function rUsure() {
 }
 
 /* ----- SETTINGS EXPORT AND IMPORT FUNCTIONS -----*/
-function exportar() {
+function exportFile() {
 
 	const actualDate = new Date();
 
@@ -916,7 +1342,7 @@ function importFile(archivo) {
 function updateDisplay() {
 	updateInfo();
 	updateClassif();
-	cambiaSuavizar();
+	changeSmoothing();
 }
 
 /* ----- UNDO FUNCTIONS ----- */

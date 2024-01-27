@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="es-ES">
 
 <head>
@@ -12,10 +12,11 @@
 
 <body>
 
-	<img src="" id="overlay"/>
+
+	<img src="" id="overlay" />
 
 	<div id="croma" class="croma">
-		<h3 id="hideMe" >Double click on any empty space to open options window.</h3>
+		<h3 id="hideMe">Double click on any empty space to open options window.</h3>
 		<div class="transparent">
 
 			<p class="dragable" id="trialName"></p>
@@ -26,22 +27,32 @@
 			<p class="dragable animable" id="handler"></p>
 			<p class="dragable animable" id="dog"></p>
 			<p class="dragable animable" id="club"></p>
-			
+
 			<p class="dragable animable" id="time"></p>
 			<p class="dragable animable" id="speed"></p>
 			<p class="dragable animable" id="faults"></p>
 			<p class="dragable animable" id="refusals"></p>
-			<p class="dragable animable" id="eliminated"></p>	
+			<p class="dragable animable" id="eliminated">ELIMINATED</p>
 
-			<div class="dragable" id="scoreTable">
-				<label class="dragable tableItem" id="tabPos0o">Pos           </label><label class="dragable tableItem" id="tabDog0o">Dog  </label><label class="dragable tableItem" id="tabHandler0o">Handler  </label><label class="dragable tableItem" id="tabPenalty0o">Penalty  </label><label class="dragable tableItem" id="tabTime0o">Time  </label>
-				<label class="dragable tableItem" id="tabPos1o">1<sup>st</sup></label><label class="dragable tableItem" id="tabDog1o">Dog 1</label><label class="dragable tableItem" id="tabHandler1o">Handler 1</label><label class="dragable tableItem" id="tabPenalty1o">Penalty 1</label><label class="dragable tableItem" id="tabTime1o">Time 1</label>
-				<label class="dragable tableItem" id="tabPos2o">2<sup>nd</sup></label><label class="dragable tableItem" id="tabDog2o">Dog 2</label><label class="dragable tableItem" id="tabHandler2o">Handler 2</label><label class="dragable tableItem" id="tabPenalty2o">Penalty 2</label><label class="dragable tableItem" id="tabTime2o">Time 2</label>
-				<label class="dragable tableItem" id="tabPos3o">3<sup>rd</sup></label><label class="dragable tableItem" id="tabDog3o">Dog 3</label><label class="dragable tableItem" id="tabHandler3o">Handler 3</label><label class="dragable tableItem" id="tabPenalty3o">Penalty 3</label><label class="dragable tableItem" id="tabTime3o">Time 3</label>
-				<label class="dragable tableItem" id="tabPos4o">4<sup>th</sup></label><label class="dragable tableItem" id="tabDog4o">Dog 4</label><label class="dragable tableItem" id="tabHandler4o">Handler 4</label><label class="dragable tableItem" id="tabPenalty4o">Penalty 4</label><label class="dragable tableItem" id="tabTime4o">Time 4</label>
-				<label class="dragable tableItem" id="tabPos5o">5<sup>th</sup></label><label class="dragable tableItem" id="tabDog5o">Dog 5</label><label class="dragable tableItem" id="tabHandler5o">Handler 5</label><label class="dragable tableItem" id="tabPenalty5o">Penalty 5</label><label class="dragable tableItem" id="tabTime5o">Time 5</label>
+			<div class="dragable tableCont" id="scoreTable">
+				<label class="tableTitle" id="scoreTableTitle">Course Results</label>
+				<div class="dragable tableRow" id="tabRow0"><label class="tableCoTi" id="tabPos0o">Pos</label><label class="dragable tableCoTi" id="tabDog0o"> Dog </label><label class="dragable tableCoTi" id="tabHandler0o"> Handler </label><label class="dragable tableCoTi" id="tabPenalty0o"> Penalty </label><label class="dragable tableCoTi" id="tabTime0o"> Time </label></div>
+				<div class="dragable tableRow" id="tabRow1"><label class="tableItem" id="tabPos1o"> 1 </label><label class="dragable tableItem" id="tabDog1o">Dog 1</label><label class="dragable tableItem" id="tabHandler1o">Handler 1</label><label class="dragable tableItem" id="tabPenalty1o">Penalty 1</label><label class="dragable tableItem" id="tabTime1o">Time 1</label></div>
+				<div class="dragable tableRow" id="tabRow2"><label class="tableItem" id="tabPos2o"> 2 </label><label class="dragable tableItem" id="tabDog2o">Dog 2</label><label class="dragable tableItem" id="tabHandler2o">Handler 2</label><label class="dragable tableItem" id="tabPenalty2o">Penalty 2</label><label class="dragable tableItem" id="tabTime2o">Time 2</label></div>
+				<div class="dragable tableRow" id="tabRow3"><label class="tableItem" id="tabPos3o"> 3 </label><label class="dragable tableItem" id="tabDog3o">Dog 3</label><label class="dragable tableItem" id="tabHandler3o">Handler 3</label><label class="dragable tableItem" id="tabPenalty3o">Penalty 3</label><label class="dragable tableItem" id="tabTime3o">Time 3</label></div>
+				<div class="dragable tableRow" id="tabRow4"><label class="tableItem" id="tabPos4o"> 4 </label><label class="dragable tableItem" id="tabDog4o">Dog 4</label><label class="dragable tableItem" id="tabHandler4o">Handler 4</label><label class="dragable tableItem" id="tabPenalty4o">Penalty 4</label><label class="dragable tableItem" id="tabTime4o">Time 4</label></div>
+				<div class="dragable tableRow" id="tabRow5"><label class="tableItem" id="tabPos5o"> 5 </label><label class="dragable tableItem" id="tabDog5o">Dog 5</label><label class="dragable tableItem" id="tabHandler5o">Handler 5</label><label class="dragable tableItem" id="tabPenalty5o">Penalty 5</label><label class="dragable tableItem" id="tabTime5o">Time 5</label></div>
 			</div>
 
+			<div class="dragable tableCont" id="scoreGeneral">
+				<label class="tableTitle" id="scoreGeneralTitle">Combined Results</label>
+				<div class="dragable tableRow" id="genRow0"><label class="tableCoTi" id="genPos0o">Pos</label><label class="dragable tableCoTi" id="genDog0o"> Dog </label><label class="dragable tableCoTi" id="genHandler0o"> Handler </label><label class="dragable tableCoTi" id="genPenalty0o"> Penalty </label><label class="dragable tableCoTi" id="genTime0o"> Time </label></div>
+				<div class="dragable tableRow" id="genRow1"><label class="tableItem" id="genPos1o"> 1 </label><label class="dragable tableItem" id="genDog1o">Dog 1</label><label class="dragable tableItem" id="genHandler1o">Handler 1</label><label class="dragable tableItem" id="genPenalty1o">Penalty 1</label><label class="dragable tableItem" id="genTime1o">Time 1</label></div>
+				<div class="dragable tableRow" id="genRow2"><label class="tableItem" id="genPos2o"> 2 </label><label class="dragable tableItem" id="genDog2o">Dog 2</label><label class="dragable tableItem" id="genHandler2o">Handler 2</label><label class="dragable tableItem" id="genPenalty2o">Penalty 2</label><label class="dragable tableItem" id="genTime2o">Time 2</label></div>
+				<div class="dragable tableRow" id="genRow3"><label class="tableItem" id="genPos3o"> 3 </label><label class="dragable tableItem" id="genDog3o">Dog 3</label><label class="dragable tableItem" id="genHandler3o">Handler 3</label><label class="dragable tableItem" id="genPenalty3o">Penalty 3</label><label class="dragable tableItem" id="genTime3o">Time 3</label></div>
+				<div class="dragable tableRow" id="genRow4"><label class="tableItem" id="genPos4o"> 4 </label><label class="dragable tableItem" id="genDog4o">Dog 4</label><label class="dragable tableItem" id="genHandler4o">Handler 4</label><label class="dragable tableItem" id="genPenalty4o">Penalty 4</label><label class="dragable tableItem" id="genTime4o">Time 4</label></div>
+				<div class="dragable tableRow" id="genRow5"><label class="tableItem" id="genPos5o"> 5 </label><label class="dragable tableItem" id="genDog5o">Dog 5</label><label class="dragable tableItem" id="genHandler5o">Handler 5</label><label class="dragable tableItem" id="genPenalty5o">Penalty 5</label><label class="dragable tableItem" id="genTime5o">Time 5</label></div>
+			</div>
 		</div>
 	</div>
 
@@ -53,35 +64,59 @@
 
 		<div class="windowBody">
 
-			<label class="subTitle" onmouseover="mInfo('fading')" onmouseout="oInfo()">Change between runs</label>
+			<label class="subTitle">Change between runs</label>
 			<label class="subTitle">Streaming</label><br>
 
-			<div class="subOptions">			
-				<label onmouseover="mInfo('fading')" onmouseout="oInfo()">Text Fading</label><select id="fadingSelector" onmouseover="mInfo('fading')" onmouseout="oInfo()">
+			<div class="subOptions">
+				<label onmouseover="mInfo('fading')" onmouseout="oInfo()">Text Fading</label><select id="fadingSelector">
 					<option>No</option>
 					<option selected>Yes</option>
 				</select>
-				
-				<label>Background</label><input id="cromaBGcolorInput" value="#00000000"/><br>
-				<label>Delay (ms.)</label><input id="fadingDelayInput" type="number" value=5000 /><br>
-			</div><br>
-			
-			<label class="subTitle" style="width: 610px;">Overlay Image</label><br>
-			<div class="subOptions">	
-				<input type="file" id="imagePath" accept="image/*" style="width: 610px; height: 35px;"><br>
+				<label onmouseover="mInfo('bgColor')" onmouseout="oInfo()">Background</label><input id="cromaBGcolorInput" value="#00000000" /><br>
+				<label onmouseover="mInfo('fadingDly')" onmouseout="oInfo()">Delay (ms.)</label><input id="fadingDelayInput" type="number" value=5000 />
+				<label onmouseover="mInfo('length')" onmouseout="oInfo()">Course length</label><input id="metros" type="number" value=200 /><br>
+
+				<label style="color: #CCC;">_</label><label style="color: #CCC;">_</label>
+				<label onmouseover="mInfo('maxVel')" onmouseout="oInfo()">Max Speed</label><input id="maxVel" type="number" value=9.99 /><br>
 			</div>
 
-			<label class="subTitle" style="width: 610px;">Conection</label><br>
-			<div class="subOptions">	
-				<label>Streaming URL</label><input id="urlWebsocket"/><br>
-				<label id="connFlowStatus">Disconnected</label><button onclick="connFlow()" id="connFlowButton">Connect</button><br>
+			<label class="subTitle" style="width: 610px;">Overlay Image</label><br>
+			<div class="subOptions">
+				<label>File name:</label>
+				<input id="imageName" style="width: 460px;" disabled /><br>
+
+				<label class="connStatus" id="imageStatus">No file</label>
+				<button class="connButton" id="loadImgButton" onclick="loadImg()">Load</button>
+				<input type="file" id="imageFile" accept="image/*" style="display: none;" onchange="displayFileName(this)">
+			</div>
+
+			<label class="subTitle" style="width: 610px;">Flow Agility Connection</label><br>
+			<div class="subOptions">
+				<label>Streaming URL</label>
+				<input id="urlWebsocket" style="width: 460px;" placeholder="Flow Agility streaming URL"/><br>
+				<label class="connStatus" id="connFlowStatus">Disconnected</label>
+				<button class="connButton" onclick="connFlow()" id="connFlowButton">Connect</button><br>
 			</div><br>
 
-			<button onclick="generalEdit()" onmouseover="mInfo('editInfo')" onmouseout="oInfo()" id="editButton">Enter Edit</button>
+			<label class="subTitle" style="width: 610px;">Local Timer</label><br>
+			<div class="subOptions">
+				<!-- <label>Timer IP Addr</label> -->
+				<select id="timerSelector" onmouseover="mInfo('timer')" onmouseout="oInfo()">
+					<option selected>ZonEcron</option>
+					<option>Galican</option>
+				</select>
+				<input id="timerWebsocket" style="width: 460px;" placeholder="Timer IP address" /><br>
+				<label class="connStatus" id="connTimerStatus">Disconnected</label>
+				<button class="connButton" onclick="connTimer()" id="connTimerButton">Connect</button>
+				<br>
+			</div><br>
+
+			<button onclick="generalEdit()" onmouseover="mInfo('editInfo')" onmouseout="oInfo()" id="editButton">Enter
+				Edit</button>
 			<button onclick="generalSave()" onmouseover="mInfo('saveInfo')" onmouseout="oInfo()">Save</button>
 			<button onclick="generalImpExp()" onmouseover="mInfo('impExInfo')" onmouseout="oInfo()" id="impExButton">Import</button>
 			<input type="file" id="JSONfile" accept=".json" style="display: none;" onchange="importFile(JSONfile.files[0])" />
-			
+
 			<br>
 			<button onclick="generalApply()" onmouseover="mInfo('visualInfo')" onmouseout="oInfo()">Preview</button>
 			<button onclick="generalAccept()" onmouseover="mInfo('acceptInfo')" onmouseout="oInfo()">OK</button>
@@ -112,6 +147,8 @@
 				<label>Position Z</label><input id="posZInput" type="number" min="1" max="9" />
 				<br>
 				<label>BG Color</label><input id="itemBGcolorInput" />
+				<br>
+				<label>Hidden</label><input id="hiddenCheck" type="checkbox" />
 				<br>
 			</div>
 

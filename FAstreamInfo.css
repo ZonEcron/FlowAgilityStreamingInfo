@@ -1,28 +1,18 @@
 * {
-    font-family: Tahoma;
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
+[hidden] {
+    display: none !important;
+}
+
 body {
+    font-family: Tahoma;
     background-color: black;
     color: white;
     user-select: none;
-    /* --------------------cambios insertar imagen---------------------- */
-
-    /* margin: 0;
-    padding: 0;
-    background-size: cover;
-    background-position: center;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center; */
-
-    /* ----------------------------------------------------------------- */
-
-
 }
 
 p {
@@ -35,11 +25,11 @@ input,
 label,
 button {
     font-weight: bold;
-    font-size: 16px;
     width: 150px;
     height: 25px;
     padding: 5px;
     margin-bottom: 10px;
+    white-space: nowrap;
 }
 
 select {
@@ -58,17 +48,20 @@ button {
     margin: 0 0 25px 35px;
 }
 
+#hiddenCheck {
+    position: relative;
+    top: 5px;
+    width: 25px;
+    height: 25px;
+}
+
 #bConectar {
     padding: 0;
     margin: 0;
     display: inline-block;
 }
 
-#imagePath{
-    width: 460px;
-}
-
-#urlWebsocket {
+#imagePath {
     width: 460px;
 }
 
@@ -86,7 +79,7 @@ button {
     top: 100px;
     left: 100px;
     width: 650px;
-    z-index: 10;
+    z-index: 1000;
     color: #000000;
     border-radius: 25px;
     border: 1px solid black;
@@ -145,66 +138,101 @@ button {
     z-index: 1000;
 }
 
+#timerSelector {
+    margin: 0 0 0 10px;
+    width: 140px;
+}
+
 /* label estado conexion */
-#conStatus {
+.connStatus {
     color: red;
     font-weight: bold;
-    text-align: center;
 }
 
 /* botones conectar y cargar en ventana emergente */
-#connFlowButton {
+.connButton {
     margin: 0;
     padding: 0;
 }
 
 /* Elementos streaming */
-#scoreTable {
+#scoreTable,
+#scoreGeneral {
     position: absolute;
-    height: 310px;
+    height: 360px;
     width: 1000px;
-    top: 200px;
-    left: 400px;
-    z-index: 3;
+    z-index: 50;
     background-color: #FFFFFF44;
+    font-family: Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 30px;
 }
 
-.tableItem {
+#scoreTable {
+    top: 200px;
+    left: 10px;
+}
+
+#scoreGeneral {
+    top: 200px;
+    left: 1020px;
+}
+
+.tableTitle {
+    height: 45px;
+    width: 100%;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.tableRow {
+    position: absolute;
+    left: 5px;
+    height: 45px;
+    width: 990px;
+    z-index: 5;
+}
+
+.tableItem,
+.tableCoTi {
     font-weight: normal;
     position: absolute;
     overflow: hidden;
     height: 45px;
-    font-size: 30px;
     line-height: 0.8;
-    z-index: 5;
+    z-index: 7;
     padding: 10px;
     text-align: left;
 }
 
 /* COLUMNAS DE LA TABLA DE CLASIFICACION */
 
+[id^="genPos"],
 [id^="tabPos"] {
     left: 10px;
     width: 80px;
     text-align: center;
 }
 
+[id^="genDog"],
 [id^="tabDog"] {
     left: 90px;
     width: 200px;
 }
 
+[id^="genHandler"],
 [id^="tabHandler"] {
     left: 290px;
     width: 400px;
 }
 
+[id^="genPenalty"],
 [id^="tabPenalty"] {
     left: 690px;
     width: 150px;
     text-align: right;
 }
 
+[id^="genTime"],
 [id^="tabTime"] {
     left: 840px;
     width: 150px;
@@ -213,34 +241,35 @@ button {
 
 /* FILAS DE LA TABLA DE CLASIFICACION*/
 
-[id$="0o"] {
+[id$="Row0"] {
     font-weight: bold;
-    top: 10px;
+    top: 60px;
     border-bottom: 3px solid white;
 }
 
-[id$="1o"] {
-    top: 60px;
+[id$="Row1"] {
+    top: 110px;
     background-color: #FFD70088;
 }
 
-[id$="2o"] {
-    top: 110px;
+[id$="Row2"] {
+    top: 160px;
     background-color: #C0C0C088;
 }
 
-[id$="3o"] {
-    top: 160px;
+[id$="Row3"] {
+    top: 210px;
     background-color: #CD7F3288;
 }
 
-[id$="4o"] {
-    top: 210px;
-}
-
-[id$="5o"] {
+[id$="Row4"] {
     top: 260px;
 }
+
+[id$="Row5"] {
+    top: 310px;
+}
+
 
 #time,
 #speed,
@@ -387,7 +416,7 @@ button {
 #overlay {
     position: absolute;
     top: 0px;
-    left: 0px; 
+    left: 0px;
 }
 
 #hideMe {
