@@ -524,23 +524,6 @@ function websocFlow() {
 
 					updateInfo();
 
-					if (connectedT === WebSocket.OPEN) {
-
-						const faults = parseInt(currentTeam.faults) || 0;
-						const refusals = parseInt(currentTeam.refusals) || 0;
-						const elimination = currentTeam.disqualification === "elim" ? 1 : 0;
-
-						const objSend = {
-							faults,
-							refusals,
-							elimination,
-						}
-						const msgSend = JSON.stringify(objSend)
-
-						connectionT.send(msgSend);
-
-					}
-
 				} else {
 					currentTeam = null;
 				}
