@@ -1,4 +1,4 @@
-# FLOW AGILITY STREAMING INFO V 0.3.0
+# FLOW AGILITY STREAMING INFO V 0.6.0
 
 ## DEVELOPMENT
 Flow Agility Streaming Info by **ZonEcron** Agility Timers. 
