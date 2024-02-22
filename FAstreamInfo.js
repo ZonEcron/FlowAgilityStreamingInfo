@@ -495,9 +495,9 @@ function websocFlow() {
 		connFlowButton.innerHTML = "Disconnect";
 	};
 
-	connectionF.onmessage = (mensaje) => {
+	connectionF.onmessage = (message) => {
 
-		if (mensaje.data === 'pong') {
+		if (message.data === 'pong') {
 
 			clearTimeout(noPongTimeout);
 			noPongTimeout = setTimeout(noPong, noPongDelay);
@@ -509,7 +509,7 @@ function websocFlow() {
 
 		} else {
 
-			const parsedData = checkJSON(mensaje.data);
+			const parsedData = checkJSON(message.data);
 
 			if (parsedData && parsedData.run) {
 
@@ -731,6 +731,8 @@ function websocTimer() {
 		connTimerStatus.style.color = "green";
 		connTimerButton.innerHTML = "Disconnect";
 
+		if (timerSelector.selectedIndex === 0) connectionT.send("d0");
+
 	};
 
 	connectionT.onmessage = (message) => {
@@ -739,7 +741,7 @@ function websocTimer() {
 
 			const data = message.data;
 
-			if (mensaje.data == '__ping__') {
+			if (message.data == '__ping__') {
 				clearTimeout(timerPingTimeout);
 				timerPingTimeout = setTimeout(noTimerPing, timerPingDelay);
 				return;
