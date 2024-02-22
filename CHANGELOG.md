@@ -38,4 +38,8 @@
  - Added course lenght input
  - Added max calculated speed to be displayed. (only when timer is connected) 
  - Added auto connection retry after communication error.
+
+  ## 0.6.1 - 2024/02/22
+  - Corrected minor bugs related to ZonEcron timer connection.
+  - Renamed main html to index.html to publish directly on github.io
  

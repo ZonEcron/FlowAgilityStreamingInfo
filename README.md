@@ -1,10 +1,10 @@
-# FLOW AGILITY STREAMING INFO V 0.6.0
+# FLOW AGILITY STREAMING INFO V 0.6.1
 
 ## DEVELOPMENT
 Flow Agility Streaming Info by **ZonEcron** Agility Timers. 
  - Visit us https://www.zonecron.com
  - Insult us https://facebook.com/zonecron
- - Write us zonecron@gmail.com
+ - Write us zonecron@zonecron.com
 
 ## USAGE
 This HTML file is designed to run standalone, just unzip and double click on it. This HTML file will show the name of the guide, dog, club... etc as provided by Flow Agility platform https://flowagility.com .  
