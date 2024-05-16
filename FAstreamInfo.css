@@ -159,22 +159,22 @@ button {
 #scoreTable,
 #scoreGeneral {
     position: absolute;
-    height: 360px;
-    width: 1000px;
+    height: 610px;
     z-index: 50;
     background-color: #FFFFFF44;
     font-family: Tahoma, Geneva, Verdana, sans-serif;
     font-size: 30px;
+    top: 900px;
 }
 
 #scoreTable {
-    top: 200px;
+    width: 1150px;
     left: 10px;
 }
 
 #scoreGeneral {
-    top: 200px;
-    left: 1020px;
+    width: 1000px;
+    left: 1170px;
 }
 
 .tableTitle {
@@ -184,12 +184,17 @@ button {
     margin-top: 10px;
 }
 
-.tableRow {
+.rowTab,
+.rowGen {
     position: absolute;
     left: 5px;
     height: 45px;
     width: 990px;
     z-index: 5;
+}
+
+.rowTab {
+    width: 1140px;
 }
 
 .tableItem,
@@ -239,6 +244,16 @@ button {
     text-align: right;
 }
 
+[id^="tabSpeed"] {
+    left: 990px;
+    width: 150px;
+    text-align: right;
+}
+
+#tabSpeed0o {
+    left: 970px; 
+}
+
 /* FILAS DE LA TABLA DE CLASIFICACION*/
 
 [id$="Row0"] {
@@ -268,6 +283,26 @@ button {
 
 [id$="Row5"] {
     top: 310px;
+}
+
+[id$="Row6"] {
+    top: 360px;
+}
+
+[id$="Row7"] {
+    top: 410px;
+}
+
+[id$="Row8"] {
+    top: 460px;
+}
+
+[id$="Row9"] {
+    top: 510px;
+}
+
+[id$="Row10"] {
+    top: 560px;
 }
 
 

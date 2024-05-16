@@ -152,16 +152,16 @@ function defaultTextsAndFlags() {
 	scoreGeneral.text1 = scoreGeneralTitle.innerText;
 
 	//Table row titles
-	for (let i = 0; i < 6; i++) {
+	for (let i = 0; i < 11; i++) {
 		document.getElementById("tabRow" + i).text1 = document.getElementById("tabPos" + i + "o").innerText;
 		document.getElementById("genRow" + i).text1 = document.getElementById("genPos" + i + "o").innerText;
 	}
 
 	// Table column titles
-	const mid = ["Dog", "Handler", "Penalty", "Time"];
-	for (let midIndex = 0; midIndex < 4; midIndex++) {
+	const mid = ["Dog", "Handler", "Penalty", "Time", "Speed"];
+	for (let midIndex = 0; midIndex < mid.length; midIndex++) {
 		document.getElementById("tab" + mid[midIndex] + "0o").text1 = document.getElementById("tab" + mid[midIndex] + "0o").innerText;
-		document.getElementById("gen" + mid[midIndex] + "0o").text1 = document.getElementById("gen" + mid[midIndex] + "0o").innerText;
+		if (midIndex !== 4) document.getElementById("gen" + mid[midIndex] + "0o").text1 = document.getElementById("gen" + mid[midIndex] + "0o").innerText;
 	}
 
 	/* ----- DEFAULT INFO DISPLAYED -----*/
@@ -180,21 +180,23 @@ function defaultTextsAndFlags() {
 	currentTeam.roundType = "AG"
 
 	/* ----- DEFAULT TABLE INFO DISPLAYED -----*/
-	for (let i = 0; i < 5; i++) {
+	for (let i = 0; i < 10; i++) {
 		const j = i + 1;
+		const k = i + 1 > 9 ? 0 : i + 1;
 		clasifTeams[i] = {
 			classification: j,
 			dog_family_name: "Dog " + j,
 			handler: "Handler " + j,
-			total_penalization: "00.0" + j,
-			time: `${j}${j}.${j}${j}`
+			total_penalization: "00." + ("0" + j).slice(-2),
+			speed: "0.00 m/s",
+			time: `${k}${k}.${k}${k}`
 		};
 		generalTeams[i] = {
 			classification: j,
 			dog_family_name: "Dog " + j,
 			handler: "Handler " + j,
-			total_penalization: "00.0" + j,
-			time: `${j}${j}.${j}${j}`
+			total_penalization: "00." + ("0" + j).slice(-2),
+			time: `${k}${k}.${k}${k}`
 		};
 	}
 
@@ -658,29 +660,34 @@ function updateInfo() {
 function updateClassif() {
 
 	//Table row titles
-	for (let i = 0; i < 6; i++) {
+	for (let i = 0; i < 11; i++) {
 		document.getElementById("tabPos" + i + "o").innerText = document.getElementById("tabRow" + i).text1;
 		document.getElementById("genPos" + i + "o").innerText = document.getElementById("genRow" + i).text1;
 	}
 
 	const pre = ["tab", "gen"];
-	const mid = ["Dog", "Handler", "Penalty", "Time"];
+	const mid = ["Dog", "Handler", "Penalty", "Time", "Speed"];
 
 	// Table column titles
-	for (let preIndex = 0; preIndex < 2; preIndex++) {
-		for (let midIndex = 0; midIndex < 4; midIndex++) {
-			document.getElementById(pre[preIndex] + mid[midIndex] + "0o").innerText = document.getElementById(pre[preIndex] + mid[midIndex] + "0o").text1;
+	for (let preIndex = 0; preIndex < pre.length; preIndex++) {
+		for (let midIndex = 0; midIndex < mid.length; midIndex++) {
+			if (preIndex !== 1 || midIndex !== 4) {
+				const domElement = document.getElementById(pre[preIndex] + mid[midIndex] + "0o");
+				domElement.innerText = document.getElementById(pre[preIndex] + mid[midIndex] + "0o").text1;
+			}
 		}
 	}
 
 	// Dinamically updated table elements
-	for (let preIndex = 0; preIndex < 2; preIndex++) {
-		for (let i = 0; i < 5; i++) {
+	for (let preIndex = 0; preIndex < pre.length; preIndex++) {
+
+		for (let i = 0; i < 10; i++) {
 
 			const tableDog = document.getElementById(pre[preIndex] + "Dog" + (i + 1) + "o");
 			const tableHandler = document.getElementById(pre[preIndex] + "Handler" + (i + 1) + "o");
 			const tablePenalty = document.getElementById(pre[preIndex] + "Penalty" + (i + 1) + "o");
 			const tableTime = document.getElementById(pre[preIndex] + "Time" + (i + 1) + "o");
+			const tableSpeed = (preIndex === 0) ? document.getElementById(pre[preIndex] + "Speed" + (i + 1) + "o") : null;
 
 			const hayInfo = clasifTeams[i]
 				? clasifTeams[i].classification
@@ -693,13 +700,16 @@ function updateClassif() {
 				tableHandler.innerHTML = `${tableHandler.text1}${clasifTeams[i].handler}${tableHandler.text2}`;
 				tablePenalty.innerHTML = `${tablePenalty.text1}${clasifTeams[i].total_penalization}${tablePenalty.text2}`;
 				tableTime.innerHTML = `${tableTime.text1}${clasifTeams[i].time}${tableTime.text2}`;
+				if (preIndex === 0) tableSpeed.innerHTML = `${tableSpeed.text1}${clasifTeams[i].speed}${tableSpeed.text2}`;
 			} else {
 				tableDog.innerHTML = `${tableDog.text1}-----${tableDog.text2}`;
 				tableHandler.innerHTML = `${tableHandler.text1}-----${tableHandler.text2}`;
 				tablePenalty.innerHTML = `${tablePenalty.text1}- -.- -${tablePenalty.text2}`;
 				tableTime.innerHTML = `${tableTime.text1}- -.- -${tableTime.text2}`;
+				if (preIndex === 0) tableSpeed.innerHTML = `${tableSpeed.text1}-.-- m/s${tableSpeed.text2}`;
+
 			}
-		};
+		}
 	}
 }
 
@@ -754,7 +764,7 @@ function websocTimer() {
 				tiem = parseInt(data.slice(-7), 10);
 				inicio = new Date().getTime() - tiem;
 				clearInterval(intervalo);
-				
+
 				if (data[0] === 'i') {
 					modo = 'i';
 					reloj(tiem, 0);

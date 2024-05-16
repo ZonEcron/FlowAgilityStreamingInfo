@@ -43,3 +43,6 @@
   - Corrected minor bugs related to ZonEcron timer connection.
   - Renamed main html to index.html to publish directly on github.io
  
+   ## 0.6.2 - 2024/03/04
+  - Added speed to course results table.
+  - Added up to 10 first teams in each results table.
