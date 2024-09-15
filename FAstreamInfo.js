@@ -428,8 +428,8 @@ function importSettings(mySettings) {
 			item.posY = mySettings[item.id] && mySettings[item.id].posY || item.posY;
 			item.posZ = mySettings[item.id] && mySettings[item.id].posZ || item.posZ;
 
-			item.text1 = mySettings[item.id] && mySettings[item.id].text1 || item.text1;
-			item.text2 = mySettings[item.id] && mySettings[item.id].text2 || item.text2;
+			item.text1 = mySettings[item.id] && mySettings[item.id].text1 || "";
+			item.text2 = mySettings[item.id] && mySettings[item.id].text2 || "";
 
 		}
 
