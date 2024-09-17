@@ -50,3 +50,4 @@
 ## 0.6.3 - 2024/09/15
 - Fixed before and after texts issue when text is empty.
 - Updated README.md with online link and clarifications regarding HTTPS and local timer connection.
+- Added receiving faults and refusals from timer when FA connection is down.

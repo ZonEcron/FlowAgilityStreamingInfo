@@ -5,8 +5,7 @@ var clasifTeams = {};
 var generalTeams = {};
 
 /* ----- FLOW AGILITY WEBSOCKET AND HEARTBEAT ----- */
-var connectionF;
-var connectedF = WebSocket.CLOSED;
+var connectionF = { readyState: WebSocket.CLOSED };
 var flowPingTimeout;
 const flowPingDelay = 25000;
 var noPongTimeout;
@@ -16,10 +15,9 @@ var flowReconnCountD;
 var flowReconnTimeLeft = 5;
 
 /* ----- TIMER WEBSOCKET AND HEARTBEAT ----- */
-var connectionT = null;
-var connectedT = WebSocket.CLOSED;
+var connectionT = { readyState: WebSocket.CLOSED };
 var timerPingTimeout;
-const timerPingDelay = 25000;
+const timerPingDelay = 55000;
 var galicanTimerStatus = {
 	time: 0,
 	faults: 0,
@@ -478,7 +476,6 @@ function websocFlow() {
 	urlWebsocket.disabled = true;
 
 	clearInterval(flowReconnCountD);
-	connectedF = connectionF.readyState;
 
 	connFlowStatus.innerHTML = "Trying";
 	connFlowStatus.style.color = "orange";
@@ -490,7 +487,6 @@ function websocFlow() {
 		connectionF.send("streaming_data");
 
 		clearInterval(flowReconnCountD);
-		connectedF = connectionF.readyState;
 
 		connFlowStatus.innerHTML = "Connected";
 		connFlowStatus.style.color = "green";
@@ -561,10 +557,9 @@ function websocFlow() {
 
 	connectionF.onerror = () => {
 
-		if (connectedF !== WebSocket.CLOSED) {
+		if (connectionF.readyState !== WebSocket.CLOSED) {
 
 			clearInterval(flowReconnCountD);
-			connectedF = connectionF.readyState;
 
 			connFlowStatus.innerHTML = "Retrying in 5s.";
 			connFlowStatus.style.color = "red";
@@ -583,7 +578,7 @@ function websocFlow() {
 	}
 }
 function connFlow() {
-	if (connectedF !== WebSocket.CLOSED) {
+	if (connectionF.readyState !== WebSocket.CLOSED) {
 
 		connectionF.close();
 
@@ -592,7 +587,6 @@ function connFlow() {
 		clearTimeout(flowReconnTimeout);
 		clearInterval(flowReconnCountD);
 
-		connectedF = WebSocket.CLOSED;
 		connFlowStatus.innerHTML = "Disconnected";
 		connFlowStatus.style.color = "red";
 		connFlowButton.innerHTML = "Connect";
@@ -638,7 +632,7 @@ function updateInfo() {
 		if (currentTeam.time === "") currentTeam.time = "--.--"
 		if (currentTeam.speed === "") currentTeam.speed = "-.-- m/s"
 
-		if (connectedT !== WebSocket.OPEN || currentTeam.status_string === "ready") {
+		if (connectionT.readyState !== WebSocket.OPEN || currentTeam.status_string === "ready") {
 			time.innerHTML = `${time.text1}${currentTeam.time}${time.text2}`;
 			speed.innerHTML = `${speed.text1}${currentTeam.speed}${speed.text2}`;
 		}
@@ -726,7 +720,6 @@ function websocTimer() {
 	timerWebsocket.disabled = true;
 
 	clearInterval(timerReconnCountD);
-	connectedT = connectionT.readyState;
 
 	connTimerStatus.innerHTML = "Trying";
 	connTimerStatus.style.color = "orange";
@@ -735,7 +728,6 @@ function websocTimer() {
 	connectionT.onopen = () => {
 
 		clearInterval(timerReconnCountD);
-		connectedT = connectionT.readyState;
 
 		connTimerStatus.innerHTML = "Connected";
 		connTimerStatus.style.color = "green";
@@ -780,6 +772,13 @@ function websocTimer() {
 					reloj(0, 0);
 				}
 
+				if (connectionF.readyState === WebSocket.CLOSED) {
+					faults.innerHTML = `${faults.text1}${data[1]}${faults.text2}`;
+					refusals.innerHTML = `${refusals.text1}${data[2]}${refusals.text2}`;
+					faults.style.visibility = data[3] === "0" ? "visible" : "hidden";
+					refusals.style.visibility = data[3] === "0" ? "visible" : "hidden";
+					eliminated.style.visibility = data[3] !== "0" ? "visible" : "hidden";
+				}
 			}
 
 
@@ -826,15 +825,22 @@ function websocTimer() {
 					ponVelocidad(0);
 					reloj(0, 0);
 				}
+
+				if (connectionF.readyState === WebSocket.CLOSED) {
+					faults.innerHTML = `${faults.text1}${galicanTimerStatus.faults}${faults.text2}`;
+					refusals.innerHTML = `${refusals.text1}${galicanTimerStatus.refusals}${refusals.text2}`;
+					faults.style.visibility = galicanTimerStatus.elimination === 0 ? "visible" : "hidden";
+					refusals.style.visibility = galicanTimerStatus.elimination === 0 ? "visible" : "hidden";
+					eliminated.style.visibility = galicanTimerStatus.elimination !== 0 ? "visible" : "hidden";
+				}
 			}
 		}
 	}
 
 	connectionT.onerror = () => {
-		if (connectedT !== WebSocket.CLOSED) {
+		if (connectionT.readyState !== WebSocket.CLOSED) {
 
 			clearInterval(timerReconnCountD);
-			connectedT = connectionT.readyState;
 			connTimerStatus.innerHTML = "Trying in 5s.";
 			connTimerStatus.style.color = "orange";
 			connTimerButton.innerHTML = "Cancel";
@@ -851,7 +857,7 @@ function websocTimer() {
 	}
 }
 function connTimer() {
-	if (connectedT !== WebSocket.CLOSED) {
+	if (connectionT.readyState !== WebSocket.CLOSED) {
 
 		connectionT.close();
 
@@ -860,7 +866,6 @@ function connTimer() {
 
 		clearTimeout(timerReconnTimeout);
 		clearInterval(timerReconnCountD);
-		connectedT = WebSocket.CLOSED;
 		connTimerStatus.innerHTML = "Disconnected";
 		connTimerStatus.style.color = "red";
 		connTimerButton.innerHTML = "Connect";
