@@ -1,24 +1,28 @@
+/*----- HIDE CURSOR -----*/
+const hideCursorDly = 5000;
+let hideCursorTimer = setTimeout(hideCursor, hideCursorDly);
+
 /* ----- COMPETITION INFO STORING ----- */
-var currentTeam = {};
-var nextTeam = null;
-var clasifTeams = {};
-var generalTeams = {};
+let currentTeam = {};
+let nextTeam = null;
+let clasifTeams = {};
+let generalTeams = {};
 
 /* ----- FLOW AGILITY WEBSOCKET AND HEARTBEAT ----- */
-var connectionF = { readyState: WebSocket.CLOSED };
-var flowPingTimeout;
+let connectionF = { readyState: WebSocket.CLOSED };
+let flowPingTimeout;
 const flowPingDelay = 25000;
-var noPongTimeout;
+let noPongTimeout;
 const noPongDelay = 55000;
-var flowReconnTimeout;
-var flowReconnCountD;
-var flowReconnTimeLeft = 5;
+let flowReconnTimeout;
+let flowReconnCountD;
+let flowReconnTimeLeft = 5;
 
 /* ----- TIMER WEBSOCKET AND HEARTBEAT ----- */
-var connectionT = { readyState: WebSocket.CLOSED };
-var timerPingTimeout;
+let connectionT = { readyState: WebSocket.CLOSED };
+let timerPingTimeout;
 const timerPingDelay = 55000;
-var galicanTimerStatus = {
+let galicanTimerStatus = {
 	time: 0,
 	faults: 0,
 	refusals: 0,
@@ -27,19 +31,19 @@ var galicanTimerStatus = {
 	precission: 1,
 	countdown: 0,
 };
-var inicio = new Date().getTime();
-var tiem = 0;
-var modo = "p";
-var intervalo;
-var timerReconnTimeout;
-var timerReconnCountD;
-var timerReconnTimeLeft = 5;
+let inicio = new Date().getTime();
+let tiem = 0;
+let modo = "p";
+let intervalo;
+let timerReconnTimeout;
+let timerReconnCountD;
+let timerReconnTimeLeft = 5;
 
 /* ----- GENERAL WINDOW ----- */
-var defSettings = true;
-var fadingDelay = 1000;
-var fadingTimer;
-var imageLoaded = false;
+let defSettings = true;
+let fadingDelay = 1000;
+let fadingTimer;
+let imageLoaded = false;
 
 /* ----- INFORMATION DISPLAYED ----- */
 const time = document.getElementById("time");
@@ -103,8 +107,8 @@ const imageFile = document.getElementById('imageFile');
 const imageName = document.getElementById('imageName');
 const imageStatus = document.getElementById('imageStatus');
 const loadImgButton = document.getElementById('loadImgButton');
-const maxVel = document.getElementById("maxVel");
-const metros = document.getElementById("metros");
+const maxSpeedInput = document.getElementById("maxSpeedInput");
+const lengthInput = document.getElementById("lengthInput");
 
 /* ----- TABLES -----*/
 const scoreTable = document.getElementById("scoreTable");
@@ -113,30 +117,27 @@ const scoreGeneral = document.getElementById("scoreGeneral");
 const scoreGeneralTitle = document.getElementById("scoreGeneralTitle");
 
 /* ----- POPUP HELP WINDOW -----*/
-var closeWarningTimeout;
-var infoTimeout;
+let closeWarningTimeout;
+let infoTimeout;
+const infoDelay = 1000;
 const vInfo = document.getElementById("vInfo");
 
 /* ----- UNDO QUEUE -----*/
-var undoArray = [];
-var undoPointer = 0;
-
-main();
+let undoArray = [];
+let undoPointer = 0;
 
 /* ----- INITIALIZATION FUNCTIONS ----- */
-function main() {
-
-	setTimeout(() => {
-		hideMe.style.display = "none";
-	}, 5000);
-
+(function () {
+	//timerWebsocket.value = location.host;
+	setTimeout(() => { hideMe.style.display = "none"; }, 5000);
 	defaultTextsAndFlags();
 	importSettings(readLocal("FASIsettings"));
 	animablesAndDragables();
 	eventTriggers();
 	updateDisplay();
 	populateUndoArray(readAllSettings());
-}
+	// websocTimer();
+})();
 function defaultTextsAndFlags() {
 
 	/* ----- DEFAULT BEFORE AND AFTER TEXTS OF SOME ELEMENTS -----*/
@@ -300,7 +301,10 @@ function animablesAndDragables() {
 	}
 }
 function eventTriggers() {
-	/* ----- EVENTS -----*/
+	/* ----- CURSOR HIDE/SHOW ----- */
+	window.addEventListener('mousemove', showCursor);
+	window.addEventListener('keydown', showCursor);
+	/* ----- BROWSERS SYNC -----*/
 	window.addEventListener('storage', () => {
 		const storedSettings = readLocal("FASIsettings");
 		if (storedSettings) {
@@ -309,6 +313,7 @@ function eventTriggers() {
 			location.reload();
 		}
 	});
+	/* ----- GENERAL AND MODAL WINDOWS -----*/
 	window.onclick = function (event) {
 		if (modal.showing && event.target != modal && !modal.contains(event.target)) {
 			vInfo.style.display = "block";
@@ -327,28 +332,31 @@ function eventTriggers() {
 		hideMe.style.display = "none";
 		window.getSelection()?.removeAllRanges();
 		if ((event.target == croma || event.target == overlay) && !modal.showing) {
-
 			const compStyle = window.getComputedStyle(croma);
 			cromaBGcolorInput.value = rgbaToHex(compStyle.getPropertyValue("background-color"))
-
 			general.urlWebsocket = urlWebsocket.value;
 			general.fadingEnabled = fadingSelector.selectedIndex;
 			general.fadingDelay = fadingDelayInput.value;
 			general.bgColor = cromaBGcolorInput.value;
 			general.imageName = imageName.value;
-
 			general.style.display = "block";
 			general.showing = true;
-
-
 		}
 	}
+	/* ----- POPUP INFO -----*/
 	document.addEventListener("mousemove", event => {
-		var cursorX = event.pageX;
-		var cursorY = event.pageY;
-		vInfo.style.left = (cursorX + 50) + "px";
-		vInfo.style.top = cursorY + "px";
+		vInfo.style.left = (event.pageX + 50) + "px";
+		vInfo.style.top = event.pageY + "px";
+		clearTimeout(infoTimeout);
+		oInfo();
+		const element = document.elementFromPoint(event.pageX, event.pageY);
+		if (element) { infoTimeout = setTimeout(() => { mInfo(element.id) }, infoDelay); }
 	});
+	document.addEventListener("mousedown", () => {
+		clearTimeout(infoTimeout);
+		oInfo();
+	});
+	/* ----- UNDO / REDO -----*/
 	document.addEventListener('keydown', event => {
 		if (general.editing) {
 			if (event.ctrlKey && event.key === 'z') {
@@ -362,6 +370,7 @@ function eventTriggers() {
 			}
 		}
 	});
+	/* ----- IMAGE FILE SELECT -----*/
 	imageFile.addEventListener('change', event => {
 		if (event.target.files[0]) {
 			const reader = new FileReader();
@@ -376,6 +385,7 @@ function importSettings(mySettings) {
 
 	if (mySettings) {
 
+		hideMe.style.display = "none";
 		toggleImpExp();
 
 		urlWebsocket.value = mySettings.visual.urlWebsocket || "";
@@ -388,16 +398,16 @@ function importSettings(mySettings) {
 		fadingDelayInput.value = mySettings.visual.fadingDelay || 5000;
 		croma.style.backgroundColor = mySettings.visual.bgColor || "#000000";
 
-		metros.value = mySettings.visual.metros || 220;
-		maxVel.value = mySettings.visual.maxVel || 9.9;
-
-		imageName.value = mySettings.visual.imgName || "";
+		lengthInput.value = mySettings.visual.length || 220;
+		maxSpeedInput.value = mySettings.visual.maxSpeed || 9.9;
 
 		if (isValidBase64(mySettings.visual.imgData)) {
 			overlay.src = "data:image/png;base64," + mySettings.visual.imgData;
+			imageName.value = mySettings.visual.imgName || "";
 			imageLoaded = true;
 			imageStatus.innerHTML = "Loaded";
 			imageStatus.style.color = "green";
+			loadImgButton.innerHTML = "Delete";
 		}
 
 		for (let item of dragable) {
@@ -449,15 +459,14 @@ function readLocal(keyName) {
 	}
 }
 function getBase64Image(img) {
-	var canvas = document.createElement("canvas");
+	let canvas = document.createElement("canvas");
 	canvas.width = img.width;
 	canvas.height = img.height;
 
-	var ctx = canvas.getContext("2d");
+	let ctx = canvas.getContext("2d");
 	ctx.drawImage(img, 0, 0);
 
-	var dataURL = canvas.toDataURL("image/png");
-
+	let dataURL = canvas.toDataURL("image/png");
 	return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
 }
 function isValidBase64(str) {
@@ -513,7 +522,7 @@ function websocFlow() {
 
 				if (parsedData.run.playset) {
 
-					metros.value = parseInt(parsedData.run.length) || metros.value;
+					lengthInput.value = parseInt(parsedData.run.length) || lengthInput.value;
 
 					currentTeam = parsedData.run.playset;
 					currentTeam.trialName = parsedData.run.trial_name || "----- -- -----";
@@ -759,17 +768,17 @@ function websocTimer() {
 
 				if (data[0] === 'i') {
 					modo = 'i';
-					reloj(tiem, 0);
-					ponVelocidad(tiem);
+					clock(tiem, 0);
+					setSpeed(tiem);
 					intervalo = setInterval(() => { crono() }, 100);
 				} else if (data[0] === 'p') {
 					modo = 'p';
-					reloj(tiem, 1);
-					ponVelocidad(tiem);
+					clock(tiem, 1);
+					setSpeed(tiem);
 				} else {
 					modo = 'p';
-					ponVelocidad(0);
-					reloj(0, 0);
+					setSpeed(0);
+					clock(0, 0);
 				}
 
 				if (connectionF.readyState === WebSocket.CLOSED) {
@@ -789,7 +798,7 @@ function websocTimer() {
 
 			if (parsedData) {
 
-				for (var property in galicanTimerStatus) {
+				for (let property in galicanTimerStatus) {
 					if (parsedData.hasOwnProperty(property)) {
 						galicanTimerStatus[property] = parsedData[property];
 					}
@@ -805,8 +814,8 @@ function websocTimer() {
 							tiem = galicanTimerStatus.time;
 							modo = 'i';
 							clearInterval(intervalo);
-							ponVelocidad(tiem);
-							reloj(tiem, 0);
+							setSpeed(tiem);
+							clock(tiem, 0);
 							intervalo = setInterval(() => { crono() }, 100);
 						}
 					}
@@ -816,14 +825,14 @@ function websocTimer() {
 						tiem = Math.round(galicanTimerStatus.time / 10) * 10;
 						inicio = new Date().getTime() - tiem;
 						clearInterval(intervalo);
-						ponVelocidad(tiem);
-						reloj(tiem, 1);
+						setSpeed(tiem);
+						clock(tiem, 1);
 					}
 
 				} else {
 					clearInterval(intervalo);
-					ponVelocidad(0);
-					reloj(0, 0);
+					setSpeed(0);
+					clock(0, 0);
 				}
 
 				if (connectionF.readyState === WebSocket.CLOSED) {
@@ -893,10 +902,10 @@ function checkJSON(JSONstring) {
 }
 function crono() {
 	let tiempoActual = new Date().getTime() - inicio;
-	reloj(tiempoActual, 0);
-	ponVelocidad(tiempoActual);
+	clock(tiempoActual, 0);
+	setSpeed(tiempoActual);
 }
-function reloj(muestraTiempo, muestraCentesimas) {
+function clock(muestraTiempo, muestraCentesimas) {
 	let valor = "0.00";
 	if (muestraTiempo > 0) {
 		let enteros = Math.floor(muestraTiempo / 1000);
@@ -912,16 +921,16 @@ function reloj(muestraTiempo, muestraCentesimas) {
 	}
 	time.innerHTML = `${time.text1}${valor}${time.text2}`;
 }
-function ponVelocidad(miTiempo) {
+function setSpeed(miTiempo) {
 
-	let velo = "-.--";
+	let calculatedSpeed = "-.--";
 
 	if (miTiempo > 5000) {
-		velo = (metros.value / (miTiempo / 1000)).toFixed(1);
-		if (velo > (maxVel.value * 1)) velo = "-.--";
+		calculatedSpeed = (lengthInput.value / (miTiempo / 1000)).toFixed(1);
+		if (calculatedSpeed > (maxSpeedInput.value * 1)) calculatedSpeed = "-.--";
 	}
 
-	speed.innerHTML = `${speed.text1}${velo} m/s${speed.text2}`;
+	speed.innerHTML = `${speed.text1}${calculatedSpeed} m/s${speed.text2}`;
 
 }
 
@@ -1173,8 +1182,8 @@ function readAllSettings() {
 			"fadingDelay": fadingDelayInput.value * 1,
 
 			"bgColor": cromaBGcolorInput.value,
-			"metros": metros.value,
-			"maxVel": maxVel.value,
+			"length": lengthInput.value,
+			"maxSpeed": maxSpeedInput.value,
 
 			"urlWebsocket": urlWebsocket.value,
 			"timerWebsocket": timerWebsocket.value,
@@ -1225,13 +1234,15 @@ function changeSmoothing() {
 }
 function loadImg() {
 	if (imageLoaded) {
-		overlay.src = "";
-		imageFile.value = "";
-		imageName.value = "";
-		imageLoaded = false;
-		imageStatus.innerHTML = "No File";
-		imageStatus.style.color = "red";
-		loadImgButton.innerHTML = "Load";
+		if (rUsure()) {
+			overlay.src = "";
+			imageFile.value = "";
+			imageName.value = "";
+			imageLoaded = false;
+			imageStatus.innerHTML = "No File";
+			imageStatus.style.color = "red";
+			loadImgButton.innerHTML = "Load";
+		}
 	} else {
 		imageFile.click();
 	}
@@ -1247,50 +1258,22 @@ function displayFileName(input) {
 }
 
 /* ----- POPUP HELP WINDOW FUNCTIONS -----*/
-function mInfo(tipo) {
-	infoTimeout = setTimeout(function () {
-		vInfo.style.display = "block";
-		if (tipo === "visualInfo") {
-			vInfo.innerHTML = "Temporarily apply the modifications";
-		}
-		if (tipo === "acceptInfo") {
-			vInfo.innerHTML = "Apply the modifications and close this window";
-		}
-		if (tipo === "cancelInfo") {
-			vInfo.innerHTML = "Discard the modifications and close this window";
-		}
-		if (tipo === "editInfo") {
-			vInfo.innerHTML = "Toggle between running mode and editing mode to show hidden elements and enable editing";
-		}
-		if (tipo === "saveInfo") {
-			vInfo.innerHTML = "Apply the modifications and save <b>all settings</b>";
-		}
-		if (tipo === "resetInfo") {
-			vInfo.innerHTML = "Return to <b>factory settings</b> and delete saved settings";
-		}
-		if (tipo === "fading") {
-			vInfo.innerHTML = "When dog finishes the course, after the time indicated in the delay, info will change to next dog with a smooth fade.";
-		}
-		if (tipo === "impExInfo") {
-			vInfo.innerHTML = "Export current config or import previous exported. Import only available with reseted settings.";
-		}
-		if (tipo === "timer") {
-			vInfo.innerHTML = "Timer's local websocket IP address. i.e: 192.168.4.1";
-		}
-		if (tipo === "bgColor") {
-			vInfo.innerHTML = "Background color in HEX code. Last two digits 00 will make it transparent. i.e. #FFFFFF00";
-		}
-		if (tipo === "fadingDly") {
-			vInfo.innerHTML = "Delay in milliseconds to change displayed info when a dog final score is entered in Flow Agility platform.";
-		}
-		if (tipo === "length") {
-			vInfo.innerHTML = "Course length to calculate speed in real time as time increases when local timer is connected.";
-		}
-		if (tipo === "maxVel") {
-			vInfo.innerHTML = "Maximun speed to be displayed in real time as time increases when local timer is connected.";
-		}
-	}, 1500);
-
+function mInfo(id) {
+	vInfo.style.display = "block";
+	if (id === "visualInfo") { vInfo.innerHTML = "Temporarily apply the modifications"; }
+	else if (id === "acceptInfo") { vInfo.innerHTML = "Apply the modifications and close this window"; }
+	else if (id === "cancelInfo") { vInfo.innerHTML = "Discard the modifications and close this window"; }
+	else if (id === "editButton") { vInfo.innerHTML = "Toggle between running mode and editing mode to show hidden elements and enable editing"; }
+	else if (id === "saveInfo") { vInfo.innerHTML = "Apply the modifications and save <b>all settings</b>"; }
+	else if (id === "resetInfo") { vInfo.innerHTML = "Return to <b>factory settings</b> and delete saved settings"; }
+	else if (id === "fading") { vInfo.innerHTML = "When dog finishes the course, after the time indicated in the delay, info will change to next dog with a smooth fade."; }
+	else if (id === "impExButton") { vInfo.innerHTML = "Export current config or import previous exported. Import only available with reseted settings."; }
+	else if (id === "timerSelector") { vInfo.innerHTML = "Timer's local websocket IP address. i.e: 192.168.4.1"; }
+	else if (id === "bgColor") { vInfo.innerHTML = "Background color in HEX code. Last two digits 00 will make it transparent. i.e. #FFFFFF00"; }
+	else if (id === "fadingDly") { vInfo.innerHTML = "Delay in milliseconds to change displayed info when a dog final score is entered in Flow Agility platform."; }
+	else if (id === "length") { vInfo.innerHTML = "Course length to calculate speed in real time as time increases when local timer is connected."; }
+	else if (id === "maxSpeed") { vInfo.innerHTML = "Maximun speed to be displayed in real time as time increases when local timer is connected."; }
+	else { vInfo.style.display = "none"; }
 }
 function oInfo() {
 	clearTimeout(infoTimeout);
@@ -1373,4 +1356,14 @@ function redoEdit() {
 		importSettings(undoArray[undoPointer]);
 		updateDisplay();
 	}
+}
+
+/* ----- CURSOR HIDE/SHOW ----- */
+function hideCursor() {
+	document.body.classList.add('hide-cursor');
+}
+function showCursor() {
+	document.body.classList.remove('hide-cursor');
+	clearTimeout(hideCursorTimer);
+	hideCursorTimer = setTimeout(hideCursor, hideCursorDly);
 }

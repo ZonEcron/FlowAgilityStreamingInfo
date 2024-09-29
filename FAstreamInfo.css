@@ -15,6 +15,10 @@ body {
     user-select: none;
 }
 
+.hide-cursor {
+    cursor: none; 
+}
+
 p {
     white-space: pre;
     background-color: #00000000;
@@ -69,7 +73,6 @@ button {
 .croma {
     background-color: #000000FF;
     height: 100vh;
-    overflow: -moz-hidden-unscrollable;
 }
 
 /* Ventana de propiedades*/

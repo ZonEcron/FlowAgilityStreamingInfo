@@ -3,7 +3,7 @@
 
 <head>
 	<meta charset="utf-8">
-	<meta name="viewport" content="widlabel=device-widlabel, initial-scale=1.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>FA Streaming Info</title>
 	<link rel="shortcut icon" type="image/x-icon" size="16x16 32x32" href="./favicon.ico" />
 	<link rel="stylesheet" type="text/css" href="./FAstreamInfo.css" />
@@ -69,7 +69,7 @@
 	<div id="general" class="windowBG">
 		<div class="windowTitle">
 			<b>Generales Properties</b>
-			<button onclick="generalCancel()" onmouseover="mInfo('cancelInfo')" onmouseout="oInfo()" class="closeWindowButton">X</button>
+			<button onclick="generalCancel()" id="cancelInfo" class="closeWindowButton">X</button>
 		</div>
 
 		<div class="windowBody">
@@ -78,16 +78,16 @@
 			<label class="subTitle">Streaming</label><br>
 
 			<div class="subOptions">
-				<label onmouseover="mInfo('fading')" onmouseout="oInfo()">Text Fading</label><select id="fadingSelector">
+				<label id="fading">Text Fading</label><select id="fadingSelector">
 					<option>No</option>
 					<option selected>Yes</option>
 				</select>
-				<label onmouseover="mInfo('bgColor')" onmouseout="oInfo()">Background</label><input id="cromaBGcolorInput" value="#00000000" /><br>
-				<label onmouseover="mInfo('fadingDly')" onmouseout="oInfo()">Delay (ms.)</label><input id="fadingDelayInput" type="number" value=5000 />
-				<label onmouseover="mInfo('length')" onmouseout="oInfo()">Course length</label><input id="metros" type="number" value=200 /><br>
+				<label id="bgColor">Background</label><input id="cromaBGcolorInput" value="#00000000" /><br>
+				<label id="fadingDly">Delay (ms.)</label><input id="fadingDelayInput" type="number" value=5000 />
+				<label id="length">Course length</label><input id="lengthInput" type="number" value=200 /><br>
 
 				<label style="color: #CCC;">_</label><label style="color: #CCC;">_</label>
-				<label onmouseover="mInfo('maxVel')" onmouseout="oInfo()">Max Speed</label><input id="maxVel" type="number" value=9.99 /><br>
+				<label id="maxSpeed">Max Speed</label><input id="maxSpeedInput" type="number" value=9.99 /><br>
 			</div>
 
 			<label class="subTitle" style="width: 610px;">Overlay Image</label><br>
@@ -111,7 +111,7 @@
 			<label class="subTitle" style="width: 610px;">Local Timer</label><br>
 			<div class="subOptions">
 				<!-- <label>Timer IP Addr</label> -->
-				<select id="timerSelector" onmouseover="mInfo('timer')" onmouseout="oInfo()">
+				<select id="timerSelector">
 					<option selected>ZonEcron</option>
 					<option>Galican</option>
 				</select>
@@ -121,16 +121,16 @@
 				<br>
 			</div><br>
 
-			<button onclick="generalEdit()" onmouseover="mInfo('editInfo')" onmouseout="oInfo()" id="editButton">Enter
+			<button onclick="generalEdit()" id="editButton">Enter
 				Edit</button>
-			<button onclick="generalSave()" onmouseover="mInfo('saveInfo')" onmouseout="oInfo()">Save</button>
-			<button onclick="generalImpExp()" onmouseover="mInfo('impExInfo')" onmouseout="oInfo()" id="impExButton">Import</button>
+			<button onclick="generalSave()" id="saveInfo">Save</button>
+			<button onclick="generalImpExp()" id="impExButton">Import</button>
 			<input type="file" id="JSONfile" accept=".json" style="display: none;" onchange="importFile(JSONfile.files[0])" />
 
 			<br>
-			<button onclick="generalApply()" onmouseover="mInfo('visualInfo')" onmouseout="oInfo()">Preview</button>
-			<button onclick="generalAccept()" onmouseover="mInfo('acceptInfo')" onmouseout="oInfo()">OK</button>
-			<button onclick="generalReset()" onmouseover="mInfo('resetInfo')" onmouseout="oInfo()">Reset</button>
+			<button onclick="generalApply()" id="visualInfo">Preview</button>
+			<button onclick="generalAccept()" id="acceptInfo">OK</button>
+			<button onclick="generalReset()" id="resetInfo">Reset</button>
 			<br>
 
 		</div>
@@ -139,7 +139,7 @@
 	<div id="modal" class="windowBG">
 		<div class="windowTitle">
 			<b id="modalTitle">Properties</b>
-			<button onclick="modalCancel()" onmouseover="mInfo('cancelInfo')" onmouseout="oInfo()" class="closeWindowButton">X</button>
+			<button onclick="modalCancel()" id="cancelInfo" class="closeWindowButton">X</button>
 		</div>
 		<div class="windowBody">
 
@@ -174,9 +174,9 @@
 				<br>
 			</div><br>
 
-			<button onclick="modalApply()" onmouseover="mInfo('visualInfo')" onmouseout="oInfo()">Preview</button>
-			<button onclick="modalAccept()" onmouseover="mInfo('acceptInfo')" onmouseout="oInfo()">OK</button>
-			<button onclick="modalCancel()" onmouseover="mInfo('cancelInfo')" onmouseout="oInfo()">Cancel</button><br>
+			<button onclick="modalApply()" id="visualInfo">Preview</button>
+			<button onclick="modalAccept()" id="acceptInfo">OK</button>
+			<button onclick="modalCancel()" id="cancelInfo">Cancel</button><br>
 
 		</div>
 	</div>
