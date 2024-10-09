@@ -69,7 +69,7 @@
 	<div id="general" class="windowBG">
 		<div class="windowTitle">
 			<b>Generales Properties</b>
-			<button onclick="generalCancel()" id="cancelInfo" class="closeWindowButton">X</button>
+			<button onclick="generalCancel()" id="cancelInfoGenX" class="closeWindowButton">X</button>
 		</div>
 
 		<div class="windowBody">
@@ -102,8 +102,8 @@
 
 			<label class="subTitle" style="width: 610px;">Flow Agility Connection</label><br>
 			<div class="subOptions">
-				<label>Streaming URL</label>
-				<input id="urlWebsocket" style="width: 460px;" placeholder="Flow Agility streaming URL"/><br>
+				<label id="streamigURL">Streaming URL</label>
+				<input id="urlWebsocket" style="width: 460px;" placeholder="Flow Agility provided streaming URL"/><br>
 				<label class="connStatus" id="connFlowStatus">Disconnected</label>
 				<button class="connButton" onclick="connFlow()" id="connFlowButton">Connect</button><br>
 			</div><br>
@@ -115,7 +115,7 @@
 					<option selected>ZonEcron</option>
 					<option>Galican</option>
 				</select>
-				<input id="timerWebsocket" style="width: 460px;" placeholder="Timer IP address" /><br>
+				<input id="timerWebsocket" style="width: 460px;" placeholder="Timer IP address i.e: 192.168.4.1" /><br>
 				<label class="connStatus" id="connTimerStatus">Disconnected</label>
 				<button class="connButton" onclick="connTimer()" id="connTimerButton">Connect</button>
 				<br>
@@ -128,9 +128,9 @@
 			<input type="file" id="JSONfile" accept=".json" style="display: none;" onchange="importFile(JSONfile.files[0])" />
 
 			<br>
-			<button onclick="generalApply()" id="visualInfo">Preview</button>
-			<button onclick="generalAccept()" id="acceptInfo">OK</button>
-			<button onclick="generalReset()" id="resetInfo">Reset</button>
+			<button onclick="generalApply()" id="visualInfoGen">Preview</button>
+			<button onclick="generalAccept()" id="acceptInfoGen">OK</button>
+			<button onclick="generalReset()" id="resetInfoGen">Reset</button>
 			<br>
 
 		</div>
@@ -139,7 +139,7 @@
 	<div id="modal" class="windowBG">
 		<div class="windowTitle">
 			<b id="modalTitle">Properties</b>
-			<button onclick="modalCancel()" id="cancelInfo" class="closeWindowButton">X</button>
+			<button onclick="modalCancel()" id="cancelInfoModX" class="closeWindowButton">X</button>
 		</div>
 		<div class="windowBody">
 
@@ -174,9 +174,9 @@
 				<br>
 			</div><br>
 
-			<button onclick="modalApply()" id="visualInfo">Preview</button>
-			<button onclick="modalAccept()" id="acceptInfo">OK</button>
-			<button onclick="modalCancel()" id="cancelInfo">Cancel</button><br>
+			<button onclick="modalApply()" id="visualInfoMod">Preview</button>
+			<button onclick="modalAccept()" id="acceptInfoMod">OK</button>
+			<button onclick="modalCancel()" id="cancelInfoMod">Cancel</button><br>
 
 		</div>
 	</div>

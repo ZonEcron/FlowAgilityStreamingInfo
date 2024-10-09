@@ -57,3 +57,8 @@
 - Added verification before deleting image.
 - Some spanish names in code translated to english
 - Improve code maintainability
+
+## 0.6.5 - 2024/10/09
+- Fixed disconect not working propperly when re-trying connection
+- Improved popup info method
+- Improved manual
