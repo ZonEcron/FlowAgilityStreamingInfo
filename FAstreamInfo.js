@@ -15,6 +15,7 @@ const flowPingDelay = 25000;
 let noPongTimeout;
 const noPongDelay = 55000;
 let flowReconnTimeout;
+let flowReconnTimeoutActive = false;
 let flowReconnCountD;
 let flowReconnTimeLeft = 5;
 
@@ -34,8 +35,9 @@ let galicanTimerStatus = {
 let inicio = new Date().getTime();
 let tiem = 0;
 let modo = "p";
-let intervalo;
+let timeRefreshInterval;
 let timerReconnTimeout;
+let timerReconnTimeoutActive = false;
 let timerReconnCountD;
 let timerReconnTimeLeft = 5;
 
@@ -480,11 +482,13 @@ function isValidBase64(str) {
 /* ----- WEBSOCKET FLOW AGILITY FUNCTIONS ----- */
 function websocFlow() {
 
+	if (connectionF instanceof WebSocket) connectionF.close();
 	connectionF = new WebSocket('wss://' + urlWebsocket.value);
 
 	urlWebsocket.disabled = true;
 
 	clearInterval(flowReconnCountD);
+	clearTimeout(flowReconnTimeout);
 
 	connFlowStatus.innerHTML = "Trying";
 	connFlowStatus.style.color = "orange";
@@ -566,19 +570,17 @@ function websocFlow() {
 
 	connectionF.onerror = () => {
 
-		if (connectionF.readyState !== WebSocket.CLOSED) {
+		clearInterval(flowReconnCountD);
 
-			clearInterval(flowReconnCountD);
+		connFlowStatus.innerHTML = "Retrying in 5s.";
+		connFlowStatus.style.color = "orange";
+		connFlowButton.innerHTML = "Cancel";
 
-			connFlowStatus.innerHTML = "Retrying in 5s.";
-			connFlowStatus.style.color = "red";
-			connFlowButton.innerHTML = "Cancel";
+		flowReconnCountD = setInterval(reconnFlow, 1000);
+		flowReconnTimeout = setTimeout(websocFlow, 5000);
 
-			flowReconnTimeLeft = 5;
-			flowReconnCountD = setInterval(reconnFlow, 1000);
-			flowReconnTimeout = setTimeout(websocFlow, 5000);
-
-		}
+		flowReconnTimeLeft = 5;
+		flowReconnTimeoutActive = true;
 
 	}
 
@@ -587,7 +589,7 @@ function websocFlow() {
 	}
 }
 function connFlow() {
-	if (connectionF.readyState !== WebSocket.CLOSED) {
+	if (connectionF.readyState !== WebSocket.CLOSED || flowReconnTimeoutActive) {
 
 		connectionF.close();
 
@@ -595,6 +597,8 @@ function connFlow() {
 
 		clearTimeout(flowReconnTimeout);
 		clearInterval(flowReconnCountD);
+
+		flowReconnTimeoutActive = false;
 
 		connFlowStatus.innerHTML = "Disconnected";
 		connFlowStatus.style.color = "red";
@@ -607,7 +611,7 @@ function connFlow() {
 function reconnFlow() {
 	flowReconnTimeLeft--;
 	connFlowStatus.innerHTML = `Retrying in ${flowReconnTimeLeft}s.`;
-	connFlowStatus.style.color = "red";
+	connFlowStatus.style.color = "orange";
 	connFlowButton.innerHTML = "Cancel";
 }
 function noPing() {
@@ -719,6 +723,7 @@ function updateClassif() {
 /* ----- WEBSOCKET TIMER FUNCTIONS ----- */
 function websocTimer() {
 
+	if (connectionT instanceof WebSocket) connectionT.close();
 	if (timerSelector.selectedIndex === 0) {
 		connectionT = new WebSocket('ws://' + timerWebsocket.value);
 	} else if (timerSelector.selectedIndex === 1) {
@@ -729,6 +734,7 @@ function websocTimer() {
 	timerWebsocket.disabled = true;
 
 	clearInterval(timerReconnCountD);
+	clearTimeout(timerReconnTimeout);
 
 	connTimerStatus.innerHTML = "Trying";
 	connTimerStatus.style.color = "orange";
@@ -764,13 +770,13 @@ function websocTimer() {
 
 				tiem = parseInt(data.slice(-7), 10);
 				inicio = new Date().getTime() - tiem;
-				clearInterval(intervalo);
+				clearInterval(timeRefreshInterval);
 
 				if (data[0] === 'i') {
 					modo = 'i';
 					clock(tiem, 0);
 					setSpeed(tiem);
-					intervalo = setInterval(() => { crono() }, 100);
+					timeRefreshInterval = setInterval(() => { crono() }, 100);
 				} else if (data[0] === 'p') {
 					modo = 'p';
 					clock(tiem, 1);
@@ -813,10 +819,10 @@ function websocTimer() {
 						if (modo !== 'i') {
 							tiem = galicanTimerStatus.time;
 							modo = 'i';
-							clearInterval(intervalo);
+							clearInterval(timeRefreshInterval);
 							setSpeed(tiem);
 							clock(tiem, 0);
-							intervalo = setInterval(() => { crono() }, 100);
+							timeRefreshInterval = setInterval(() => { crono() }, 100);
 						}
 					}
 
@@ -824,13 +830,13 @@ function websocTimer() {
 						modo = 'p';
 						tiem = Math.round(galicanTimerStatus.time / 10) * 10;
 						inicio = new Date().getTime() - tiem;
-						clearInterval(intervalo);
+						clearInterval(timeRefreshInterval);
 						setSpeed(tiem);
 						clock(tiem, 1);
 					}
 
 				} else {
-					clearInterval(intervalo);
+					clearInterval(timeRefreshInterval);
 					setSpeed(0);
 					clock(0, 0);
 				}
@@ -847,26 +853,27 @@ function websocTimer() {
 	}
 
 	connectionT.onerror = () => {
-		if (connectionT.readyState !== WebSocket.CLOSED) {
 
-			clearInterval(timerReconnCountD);
-			connTimerStatus.innerHTML = "Trying in 5s.";
-			connTimerStatus.style.color = "orange";
-			connTimerButton.innerHTML = "Cancel";
+		clearInterval(timerReconnCountD);
 
-			timerReconnTimeLeft = 5;
-			timerReconnCountD = setInterval(reconnTimer, 1000);
-			timerReconnTimeout = setTimeout(websocTimer, 5000);
-		}
+		connTimerStatus.innerHTML = "Retrying in 5s.";
+		connTimerStatus.style.color = "orange";
+		connTimerButton.innerHTML = "Cancel";
+
+		timerReconnCountD = setInterval(reconnTimer, 1000);
+		timerReconnTimeout = setTimeout(websocTimer, 5000);
+
+		timerReconnTimeLeft = 5;
+		timerReconnTimeoutActive = true;
 
 	}
 
 	connectionT.onclose = () => {
-		clearInterval(intervalo);
+		clearInterval(timeRefreshInterval);
 	}
 }
 function connTimer() {
-	if (connectionT.readyState !== WebSocket.CLOSED) {
+	if (connectionT.readyState !== WebSocket.CLOSED || timerReconnTimeoutActive) {
 
 		connectionT.close();
 
@@ -875,6 +882,9 @@ function connTimer() {
 
 		clearTimeout(timerReconnTimeout);
 		clearInterval(timerReconnCountD);
+
+		timerReconnTimeoutActive = false;
+
 		connTimerStatus.innerHTML = "Disconnected";
 		connTimerStatus.style.color = "red";
 		connTimerButton.innerHTML = "Connect";
@@ -885,7 +895,7 @@ function connTimer() {
 }
 function reconnTimer() {
 	timerReconnTimeLeft--;
-	connTimerStatus.innerHTML = `Trying in ${timerReconnTimeLeft}s.`;
+	connTimerStatus.innerHTML = `Retrying in ${timerReconnTimeLeft}s.`;
 	connTimerStatus.style.color = "orange";
 	connTimerButton.innerHTML = "Cancel";
 }
@@ -1260,20 +1270,51 @@ function displayFileName(input) {
 /* ----- POPUP HELP WINDOW FUNCTIONS -----*/
 function mInfo(id) {
 	vInfo.style.display = "block";
-	if (id === "visualInfo") { vInfo.innerHTML = "Temporarily apply the modifications"; }
-	else if (id === "acceptInfo") { vInfo.innerHTML = "Apply the modifications and close this window"; }
-	else if (id === "cancelInfo") { vInfo.innerHTML = "Discard the modifications and close this window"; }
-	else if (id === "editButton") { vInfo.innerHTML = "Toggle between running mode and editing mode to show hidden elements and enable editing"; }
-	else if (id === "saveInfo") { vInfo.innerHTML = "Apply the modifications and save <b>all settings</b>"; }
-	else if (id === "resetInfo") { vInfo.innerHTML = "Return to <b>factory settings</b> and delete saved settings"; }
-	else if (id === "fading") { vInfo.innerHTML = "When dog finishes the course, after the time indicated in the delay, info will change to next dog with a smooth fade."; }
-	else if (id === "impExButton") { vInfo.innerHTML = "Export current config or import previous exported. Import only available with reseted settings."; }
-	else if (id === "timerSelector") { vInfo.innerHTML = "Timer's local websocket IP address. i.e: 192.168.4.1"; }
-	else if (id === "bgColor") { vInfo.innerHTML = "Background color in HEX code. Last two digits 00 will make it transparent. i.e. #FFFFFF00"; }
-	else if (id === "fadingDly") { vInfo.innerHTML = "Delay in milliseconds to change displayed info when a dog final score is entered in Flow Agility platform."; }
-	else if (id === "length") { vInfo.innerHTML = "Course length to calculate speed in real time as time increases when local timer is connected."; }
-	else if (id === "maxSpeed") { vInfo.innerHTML = "Maximun speed to be displayed in real time as time increases when local timer is connected."; }
-	else { vInfo.style.display = "none"; }
+	if (id === "visualInfoMod" || id === "visualInfoGen") {
+		vInfo.innerHTML = "Temporarily apply the modifications";
+
+	} else if (id === "acceptInfoMod" || id === "acceptInfoGen") {
+		vInfo.innerHTML = "Apply the modifications and close this window";
+
+	} else if (id === "cancelInfoMod" || id === "cancelInfoModX" || id === "cancelInfoGenX") {
+		vInfo.innerHTML = "Discard the modifications and close this window";
+
+	} else if (id === "editButton") {
+		vInfo.innerHTML = "Toggle between running mode and editing mode to show hidden elements and enable editing";
+
+	} else if (id === "saveInfo") {
+		vInfo.innerHTML = "Apply the modifications and save <b>all settings</b>";
+
+	} else if (id === "resetInfoGen") {
+		vInfo.innerHTML = "Return to <b>factory settings</b> and delete saved settings";
+
+	} else if (id === "impExButton") {
+		vInfo.innerHTML = "Export current config or import previous exported. Import only available with reseted settings.";
+
+	} else if (id === "fading") {
+		vInfo.innerHTML = "When dog finishes the course, after the time indicated in the delay, info will change to next dog with a smooth fade.";
+
+	} else if (id === "fadingDly") {
+		vInfo.innerHTML = "Delay in milliseconds to change displayed info when a dog final score is entered in Flow Agility platform.";
+
+	} else if (id === "bgColor") {
+		vInfo.innerHTML = "Background color in HEX code. Last two digits 00 will make it transparent. i.e. #FFFFFF00";
+
+	} else if (id === "length") {
+		vInfo.innerHTML = "Course length to calculate speed in real time as time increases when local timer is connected.";
+
+	} else if (id === "maxSpeed") {
+		vInfo.innerHTML = "Maximun speed to be displayed in real time as time increases when local timer is connected.";
+
+	} else if (id === "streamigURL") {
+		vInfo.innerHTML = "URL provided by FlowAgility platform";
+
+	} else if (id === "timerSelector") {
+		vInfo.innerHTML = "Timer brand";
+
+	} else {
+		vInfo.style.display = "none";
+	}
 }
 function oInfo() {
 	clearTimeout(infoTimeout);
