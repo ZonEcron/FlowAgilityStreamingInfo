@@ -105,7 +105,7 @@
 				<label id="streamigURL">Streaming URL</label>
 				<input id="urlWebsocket" style="width: 460px;" placeholder="Flow Agility provided streaming URL"/><br>
 				<label class="connStatus" id="connFlowStatus">Disconnected</label>
-				<button class="connButton" onclick="connFlow()" id="connFlowButton">Connect</button><br>
+				<button class="connButton" onclick="connFlow(true)" id="connFlowButton">Connect</button><br>
 			</div><br>
 
 			<label class="subTitle" style="width: 610px;">Local Timer</label><br>
@@ -117,7 +117,7 @@
 				</select>
 				<input id="timerWebsocket" style="width: 460px;" placeholder="Timer IP address i.e: 192.168.4.1" /><br>
 				<label class="connStatus" id="connTimerStatus">Disconnected</label>
-				<button class="connButton" onclick="connTimer()" id="connTimerButton">Connect</button>
+				<button class="connButton" onclick="connTimer(true)" id="connTimerButton">Connect</button>
 				<br>
 			</div><br>
 

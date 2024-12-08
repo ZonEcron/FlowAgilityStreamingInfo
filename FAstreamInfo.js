@@ -18,6 +18,7 @@ let flowReconnTimeout;
 let flowReconnTimeoutActive = false;
 let flowReconnCountD;
 let flowReconnTimeLeft = 5;
+let flowConnToggleFromUser = false;
 
 /* ----- TIMER WEBSOCKET AND HEARTBEAT ----- */
 let connectionT = { readyState: WebSocket.CLOSED };
@@ -34,12 +35,13 @@ let galicanTimerStatus = {
 };
 let inicio = new Date().getTime();
 let tiem = 0;
-let modo = "p";
+let modo = "d";
 let timeRefreshInterval;
 let timerReconnTimeout;
 let timerReconnTimeoutActive = false;
 let timerReconnCountD;
 let timerReconnTimeLeft = 5;
+let timerConnToggleFromUser = false;
 
 /* ----- GENERAL WINDOW ----- */
 let defSettings = true;
@@ -489,6 +491,8 @@ function websocFlow() {
 
 	clearInterval(flowReconnCountD);
 	clearTimeout(flowReconnTimeout);
+	flowReconnTimeoutActive = false;
+	flowConnToggleFromUser = false;
 
 	connFlowStatus.innerHTML = "Trying";
 	connFlowStatus.style.color = "orange";
@@ -570,25 +574,32 @@ function websocFlow() {
 
 	connectionF.onerror = () => {
 
-		clearInterval(flowReconnCountD);
+		if (!flowConnToggleFromUser) {
 
-		connFlowStatus.innerHTML = "Retrying in 5s.";
-		connFlowStatus.style.color = "orange";
-		connFlowButton.innerHTML = "Cancel";
+			clearInterval(flowReconnCountD);
 
-		flowReconnCountD = setInterval(reconnFlow, 1000);
-		flowReconnTimeout = setTimeout(websocFlow, 5000);
+			connFlowStatus.innerHTML = "Retrying in 5s.";
+			connFlowStatus.style.color = "orange";
+			connFlowButton.innerHTML = "Cancel";
 
-		flowReconnTimeLeft = 5;
-		flowReconnTimeoutActive = true;
+			flowReconnCountD = setInterval(reconnFlow, 1000);
+			flowReconnTimeout = setTimeout(websocFlow, 5000);
 
+			flowReconnTimeLeft = 5;
+			flowReconnTimeoutActive = true;
+
+		}
 	}
 
 	connectionF.onclose = () => {
 		clearTimeout(noPongTimeout);
+		if (!flowReconnTimeoutActive && !flowConnToggleFromUser) websocFlow();
 	}
 }
-function connFlow() {
+function connFlow(fromUser = false) {
+
+	flowConnToggleFromUser = fromUser;
+
 	if (connectionF.readyState !== WebSocket.CLOSED || flowReconnTimeoutActive) {
 
 		connectionF.close();
@@ -735,6 +746,8 @@ function websocTimer() {
 
 	clearInterval(timerReconnCountD);
 	clearTimeout(timerReconnTimeout);
+	timerReconnTimeoutActive = false;
+	timerConnToggleFromUser = false;
 
 	connTimerStatus.innerHTML = "Trying";
 	connTimerStatus.style.color = "orange";
@@ -810,7 +823,7 @@ function websocTimer() {
 					}
 				}
 
-				if (galicanTimerStatus.countdown === 0) {
+				if (galicanTimerStatus.countdown === 0 || galicanTimerStatus.countdown === false) {
 
 					if (galicanTimerStatus.running === true) {
 
@@ -854,25 +867,33 @@ function websocTimer() {
 
 	connectionT.onerror = () => {
 
-		clearInterval(timerReconnCountD);
+		if (!timerConnToggleFromUser) {
 
-		connTimerStatus.innerHTML = "Retrying in 5s.";
-		connTimerStatus.style.color = "orange";
-		connTimerButton.innerHTML = "Cancel";
+			clearInterval(timerReconnCountD);
 
-		timerReconnCountD = setInterval(reconnTimer, 1000);
-		timerReconnTimeout = setTimeout(websocTimer, 5000);
+			connTimerStatus.innerHTML = "Retrying in 5s.";
+			connTimerStatus.style.color = "orange";
+			connTimerButton.innerHTML = "Cancel";
 
-		timerReconnTimeLeft = 5;
-		timerReconnTimeoutActive = true;
+			timerReconnCountD = setInterval(reconnTimer, 1000);
+			timerReconnTimeout = setTimeout(websocTimer, 5000);
 
+			timerReconnTimeLeft = 5;
+			timerReconnTimeoutActive = true;
+
+		}
 	}
 
 	connectionT.onclose = () => {
 		clearInterval(timeRefreshInterval);
+		modo = 'd';
+		if (!timerReconnTimeoutActive && !timerConnToggleFromUser) websocTimer();
 	}
 }
-function connTimer() {
+function connTimer(fromUser = false) {
+
+	timerConnToggleFromUser = fromUser;
+
 	if (connectionT.readyState !== WebSocket.CLOSED || timerReconnTimeoutActive) {
 
 		connectionT.close();
