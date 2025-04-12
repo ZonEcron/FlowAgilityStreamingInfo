@@ -769,7 +769,7 @@ function websocTimer() {
 
 		if (timerSelector.selectedIndex === 0) {
 
-			const data = message.data;
+			const data = message.data.trim();
 
 			if (message.data == '__ping__') {
 				clearTimeout(timerPingTimeout);
