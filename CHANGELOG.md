@@ -64,3 +64,14 @@
 
 ## 0.6.6 - 2024/12/08
 - Improved connect and disconect workflow
+
+## 0.7.0 - 2026/04/11
+- First version developed with AI assistance.
+- Improved drag and drop robustness, especially during fast mouse movement and while editing popup windows.
+- Improved settings import/export and restore behavior, including correct handling of null, empty and zero-like values.
+- Refactored and split the codebase into several JS files with clearer responsibilities and less coupling between UI, state, connections and persistence.
+- Improved FlowAgility and timer connection workflows, reconnect handling and validation of connection inputs.
+- Added replay and debug tooling with separate panels, fixture recording, fixture replay for manual testing for flowagility, and zonecron and galican timers.
+- Improved consistency of editing workflows, modal/general cancel behavior, undo/redo restoration and Import/Export state changes.
+- Improved table rendering and data handling for course results, combined results and empty/current-team edge cases.
+- Updated technical and user documentation to match the current architecture, replay workflow and local-use recommendations.

@@ -7,7 +7,11 @@
 	<title>FA Streaming Info</title>
 	<link rel="shortcut icon" type="image/x-icon" size="16x16 32x32" href="./favicon.ico" />
 	<link rel="stylesheet" type="text/css" href="./FAstreamInfo.css" />
-	<script src="./FAstreamInfo.js" defer></script>
+	<script src="./js/state.js" defer></script>
+	<script src="./js/setup.js" defer></script>
+	<script src="./js/runtime.js" defer></script>
+	<script src="./js/connections.js" defer></script>
+	<script src="./js/ui.js" defer></script>
 </head>
 
 <body>
@@ -115,7 +119,7 @@
 					<option selected>ZonEcron</option>
 					<option>Galican</option>
 				</select>
-				<input id="timerWebsocket" style="width: 460px;" placeholder="Timer IP address i.e: 192.168.4.1" /><br>
+				<input id="timerWebsocket" style="width: 460px;" placeholder="Timer host:port i.e: 192.168.4.1:81" /><br>
 				<label class="connStatus" id="connTimerStatus">Disconnected</label>
 				<button class="connButton" onclick="connTimer(true)" id="connTimerButton">Connect</button>
 				<br>
@@ -182,6 +186,38 @@
 	</div>
 
 	<div id="vInfo"></div><br>
+
+	<aside id="debugPanel" hidden>
+		<div class="debugPanelHeader">
+			<strong>Debug</strong>
+			<div class="debugPanelActions">
+				<button type="button" id="debugExportButton">Export</button>
+				<button type="button" id="debugClearButton">Clear</button>
+			</div>
+		</div>
+		<pre id="debugStatus"></pre>
+		<div id="debugLog"></div>
+	</aside>
+
+	<aside id="replayPanel" hidden>
+		<div class="debugReplay">
+			<div class="debugReplaySectionTitle">Playback</div>
+			<div class="debugReplayRow">
+				<button type="button" id="replayBrowseButton">Browse</button>
+				<button type="button" id="replayNextButton">Next</button>
+				<button type="button" id="replayPrevButton">Back</button>
+				<input type="file" id="replayFile" accept=".json,.txt,.log" hidden />
+			</div>
+			<div id="replayFileStatus"></div>
+			<div id="replayStatus"></div>
+			<hr class="replayDivider" />
+			<div class="debugReplaySectionTitle">Recording</div>
+			<div class="debugReplayRow">
+				<button type="button" id="replayRecordButton">Record</button>
+			</div>
+			<div id="replayRecordStatus"></div>
+		</div>
+	</aside>
 
 </body>
 

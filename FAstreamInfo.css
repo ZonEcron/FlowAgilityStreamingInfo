@@ -141,6 +141,162 @@ button {
     z-index: 1000;
 }
 
+#debugPanel {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    width: 420px;
+    max-height: calc(100vh - 32px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid #444;
+    background: rgba(12, 12, 12, 0.92);
+    color: #EAEAEA;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12px;
+    z-index: 5000;
+    overflow: hidden;
+    user-select: text;
+}
+
+#replayPanel {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid #444;
+    background: rgba(12, 12, 12, 0.92);
+    color: #EAEAEA;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12px;
+    z-index: 5000;
+    overflow: hidden;
+    user-select: text;
+}
+
+.debugPanelHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.debugPanelActions {
+    display: flex;
+    gap: 8px;
+}
+
+.debugPanelHeader button {
+    width: auto;
+    height: 24px;
+    margin: 0;
+    padding: 0 8px;
+}
+
+#debugStatus {
+    margin: 0;
+    padding: 8px;
+    border: 1px solid #333;
+    background: rgba(255, 255, 255, 0.04);
+    white-space: pre-wrap;
+}
+
+.debugReplay {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+    border: 1px solid #333;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.debugReplaySectionTitle {
+    color: #F0C36D;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+}
+
+.replayDivider {
+    border: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.16);
+    margin: 4px 0;
+}
+
+.debugReplayRow {
+    display: flex;
+    gap: 8px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+}
+
+.debugReplay select,
+.debugReplay button {
+    margin: 0;
+    width: 112px;
+    height: 26px;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12px;
+}
+
+#debugReplayStatus,
+#replayFileStatus {
+    color: #8BC9FF;
+    padding: 0;
+}
+
+#replayFileStatus {
+    margin-bottom: -4px;
+}
+
+#replayRecordStatus {
+    color: #CFCFCF;
+}
+
+.replayStartedAt {
+    margin-bottom: 4px;
+    color: #8BC9FF;
+}
+
+#debugLog {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.debugLogEntry {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 4px;
+    word-break: break-word;
+}
+
+.debugLogTime {
+    color: #8BC9FF;
+    margin-right: 8px;
+}
+
+.debugLogArea {
+    color: #F0C36D;
+    margin-right: 8px;
+}
+
+.debugLogMessage {
+    color: #F5F5F5;
+    margin-right: 8px;
+}
+
+.debugLogData {
+    color: #A9D39E;
+}
+
 #timerSelector {
     margin: 0 0 0 10px;
     width: 140px;
