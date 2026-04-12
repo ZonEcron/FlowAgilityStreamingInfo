@@ -1,6 +1,33 @@
 let lastZonecronDebugSignature = "";
 let lastGalicanDebugSignature = "";
 let lastGalicanObservedPayload = null;
+let pendingTimerMessageTimeouts = [];
+
+function clearPendingTimerMessageTimeouts() {
+	for (const timeoutId of pendingTimerMessageTimeouts) {
+		clearTimeout(timeoutId);
+	}
+	pendingTimerMessageTimeouts = [];
+}
+function getConfiguredTimerDelay() {
+	const parsedDelay = Number(appState.ui.timerDelay);
+	return Number.isFinite(parsedDelay) && parsedDelay >= 0 ? parsedDelay : 0;
+}
+function scheduleDelayedTimerProcessing(processor, messageData, options = {}) {
+	const delay = getConfiguredTimerDelay();
+
+	if (options.bypassDelay || delay <= 0) {
+		processor(messageData);
+		return;
+	}
+
+	const timeoutId = setTimeout(() => {
+		pendingTimerMessageTimeouts = pendingTimerMessageTimeouts.filter(id => id !== timeoutId);
+		processor(messageData);
+	}, delay);
+
+	pendingTimerMessageTimeouts.push(timeoutId);
+}
 
 function getChangedGalicanKeys(previousPayload, nextPayload) {
 	const changedKeys = [];
@@ -153,61 +180,66 @@ function mergeGalicanTimerStatus(parsedData) {
 		}
 	}
 }
-function applyGalicanTimerMessage(messageData) {
-	const parsedData = checkJSON(messageData);
+function applyGalicanTimerPayload(parsedData, shouldCaptureMessage = null) {
+	if (!parsedData) return;
 
-	if (parsedData) {
-		const shouldCaptureMessage = shouldCaptureGalicanPayload(parsedData);
+	const shouldLogMessage = typeof shouldCaptureMessage === "boolean"
+		? shouldCaptureMessage
+		: shouldCaptureGalicanPayload(parsedData);
 
-		mergeGalicanTimerStatus(parsedData);
+	mergeGalicanTimerStatus(parsedData);
 
-		if (galicanTimerStatus.countdown === 0 || galicanTimerStatus.countdown === false) {
+	if (galicanTimerStatus.countdown === 0 || galicanTimerStatus.countdown === false) {
 
-			if (galicanTimerStatus.running === true) {
+		if (galicanTimerStatus.running === true) {
 
-				inicio = new Date().getTime() - galicanTimerStatus.time;
+			inicio = new Date().getTime() - galicanTimerStatus.time;
 
-				if (modo !== 'i') {
-					tiem = galicanTimerStatus.time;
-					modo = 'i';
-					clearInterval(timeRefreshInterval);
-					setSpeed(tiem);
-					clock(tiem, 0);
-					timeRefreshInterval = setInterval(() => { crono() }, 100);
-				}
-			}
-
-			if (galicanTimerStatus.running === false && modo !== 'p') {
-				modo = 'p';
-				tiem = Math.round(galicanTimerStatus.time / 10) * 10;
-				inicio = new Date().getTime() - tiem;
+			if (modo !== 'i') {
+				tiem = galicanTimerStatus.time;
+				modo = 'i';
 				clearInterval(timeRefreshInterval);
 				setSpeed(tiem);
-				clock(tiem, 1);
+				clock(tiem, 0);
+				timeRefreshInterval = setInterval(() => { crono() }, 100);
 			}
+		}
 
-		} else {
+		if (galicanTimerStatus.running === false && modo !== 'p') {
+			modo = 'p';
+			tiem = Math.round(galicanTimerStatus.time / 10) * 10;
+			inicio = new Date().getTime() - tiem;
 			clearInterval(timeRefreshInterval);
-			setSpeed(0);
-			clock(0, 0);
+			setSpeed(tiem);
+			clock(tiem, 1);
 		}
 
-		if (connectionF.readyState === WebSocket.CLOSED) {
-			updateOfflineScoreDisplay(galicanTimerStatus.faults, galicanTimerStatus.refusals, galicanTimerStatus.elimination);
-		}
-		const signature = `${galicanTimerStatus.running}:${galicanTimerStatus.time}:${galicanTimerStatus.countdown}:${galicanTimerStatus.faults}:${galicanTimerStatus.refusals}:${galicanTimerStatus.elimination}`;
-		if (shouldCaptureMessage && signature !== lastGalicanDebugSignature) {
-			lastGalicanDebugSignature = signature;
-			FASI.runtime.recordIncomingFixtureMessage("galican", parsedData);
-			FASI.runtime.debugLog("timer", "Processed Galican status", {
-				running: galicanTimerStatus.running,
-				time: galicanTimerStatus.time,
-				countdown: galicanTimerStatus.countdown,
-				faults: galicanTimerStatus.faults,
-				refusals: galicanTimerStatus.refusals,
-				elimination: galicanTimerStatus.elimination,
-			});
-		}
+	} else {
+		clearInterval(timeRefreshInterval);
+		setSpeed(0);
+		clock(0, 0);
+	}
+
+	if (connectionF.readyState === WebSocket.CLOSED) {
+		updateOfflineScoreDisplay(galicanTimerStatus.faults, galicanTimerStatus.refusals, galicanTimerStatus.elimination);
+	}
+	const signature = `${galicanTimerStatus.running}:${galicanTimerStatus.time}:${galicanTimerStatus.countdown}:${galicanTimerStatus.faults}:${galicanTimerStatus.refusals}:${galicanTimerStatus.elimination}`;
+	if (shouldLogMessage && signature !== lastGalicanDebugSignature) {
+		lastGalicanDebugSignature = signature;
+		FASI.runtime.debugLog("timer", "Processed Galican status", {
+			running: galicanTimerStatus.running,
+			time: galicanTimerStatus.time,
+			countdown: galicanTimerStatus.countdown,
+			faults: galicanTimerStatus.faults,
+			refusals: galicanTimerStatus.refusals,
+			elimination: galicanTimerStatus.elimination,
+		});
+	}
+}
+function applyGalicanTimerMessage(messageData) {
+	const parsedData = checkJSON(messageData);
+	if (parsedData) {
+		applyGalicanTimerPayload(parsedData);
 	}
 }
 function scheduleFlowReconnect() {
@@ -243,6 +275,7 @@ function resetFlowReconnectState() {
 function resetTimerReconnectState() {
 	clearInterval(timerReconnCountD);
 	clearTimeout(timerReconnTimeout);
+	clearPendingTimerMessageTimeouts();
 	timerReconnTimeoutActive = false;
 	timerConnToggleFromUser = false;
 }
@@ -287,14 +320,26 @@ function handleFlowSocketMessage(messageData) {
 		FASI.runtime.debugLog("flow", "Ignored invalid run_ready payload", parsedData.run_ready);
 	}
 }
-function handleTimerSocketMessage(messageData) {
+function handleTimerSocketMessage(messageData, options = {}) {
 	if (timerSelector.selectedIndex === 0) {
 		if (messageData !== "__ping__") {
 			FASI.runtime.recordIncomingFixtureMessage("zonecron", messageData);
+			scheduleDelayedTimerProcessing(applyZonecronTimerMessage, messageData, options);
+			return;
 		}
 		applyZonecronTimerMessage(messageData);
 	} else if (timerSelector.selectedIndex === 1) {
-		applyGalicanTimerMessage(messageData);
+		const parsedData = checkJSON(messageData);
+		if (!parsedData) return;
+		const shouldCaptureMessage = shouldCaptureGalicanPayload(parsedData);
+		if (shouldCaptureMessage) {
+			FASI.runtime.recordIncomingFixtureMessage("galican", parsedData);
+		}
+		scheduleDelayedTimerProcessing(
+			payload => applyGalicanTimerPayload(payload, shouldCaptureMessage),
+			parsedData,
+			options
+		);
 	}
 }
 function configureFlowSocketHandlers() {
@@ -358,6 +403,7 @@ function configureTimerSocketHandlers() {
 
 	connectionT.onclose = () => {
 		clearInterval(timeRefreshInterval);
+		clearPendingTimerMessageTimeouts();
 		modo = 'd';
 		FASI.runtime.debugLog("timer", "Socket closed", {
 			byUser: timerConnToggleFromUser,

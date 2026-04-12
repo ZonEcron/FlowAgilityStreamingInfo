@@ -296,12 +296,12 @@ button {
 .debugLogData {
     color: #A9D39E;
 }
-
+/*
 #timerSelector {
     margin: 0 0 0 10px;
     width: 140px;
 }
-
+*/
 /* label estado conexion */
 .connStatus {
     color: red;

@@ -14,6 +14,7 @@ const appState = {
 	ui: {
 		defSettings: true,
 		fadingDelay: 1000,
+		timerDelay: 0,
 		imageLoaded: false,
 		activeDragTarget: null,
 		modalTarget: null,
@@ -149,6 +150,7 @@ const connFlowStatus = document.getElementById("connFlowStatus");
 const connFlowButton = document.getElementById("connFlowButton");
 const timerSelector = document.getElementById("timerSelector");
 const timerWebsocket = document.getElementById("timerWebsocket");
+const timerDelayInput = document.getElementById("timerDelayInput");
 const connTimerStatus = document.getElementById("connTimerStatus");
 const connTimerButton = document.getElementById("connTimerButton");
 const fadingSelector = document.getElementById("fadingSelector");

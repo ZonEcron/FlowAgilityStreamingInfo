@@ -183,6 +183,7 @@ function openGeneralWindow() {
 		urlWebsocket: urlWebsocket.value,
 		timerType: timerSelector.selectedIndex,
 		timerWebsocket: timerWebsocket.value,
+		timerDelay: timerDelayInput.value,
 		fadingEnabled: fadingSelector.selectedIndex,
 		fadingDelay: fadingDelayInput.value,
 		length: lengthInput.value,
@@ -332,6 +333,7 @@ function generalCancel() {
 		urlWebsocket.value = generalDraft.urlWebsocket;
 		timerSelector.selectedIndex = generalDraft.timerType;
 		timerWebsocket.value = generalDraft.timerWebsocket;
+		timerDelayInput.value = generalDraft.timerDelay;
 		fadingSelector.selectedIndex = generalDraft.fadingEnabled;
 		fadingDelayInput.value = generalDraft.fadingDelay;
 		lengthInput.value = generalDraft.length;
@@ -405,6 +407,8 @@ function toggleImpExp() {
 function changeSmoothing() {
 	const parsedDelay = Number(fadingDelayInput.value);
 	appState.ui.fadingDelay = Number.isFinite(parsedDelay) && parsedDelay >= 0 ? parsedDelay : 5000;
+	const parsedTimerDelay = Number(timerDelayInput.value);
+	appState.ui.timerDelay = Number.isFinite(parsedTimerDelay) && parsedTimerDelay >= 0 ? parsedTimerDelay : 0;
 	if (!fadingSelector.selectedIndex) {
 		clearTimeout(fadingTimer);
 	}
@@ -447,6 +451,45 @@ function mInfo(id) {
 	} else if (id === "cancelInfoMod" || id === "cancelInfoModX" || id === "cancelInfoGenX") {
 		vInfo.innerHTML = "Discard the modifications and close this window";
 
+	} else if (id === "modalTitle" || id === "general") {
+		vInfo.innerHTML = "Drag this window from the title bar";
+
+	} else if (id === "fontInput") {
+		vInfo.innerHTML = "Font family used by the selected element.";
+
+	} else if (id === "sizeInput") {
+		vInfo.innerHTML = "Font size in pixels.";
+
+	} else if (id === "textColorInput") {
+		vInfo.innerHTML = "Text color in HEX code. Last two digits control transparency.";
+
+	} else if (id === "itemBGcolorInput") {
+		vInfo.innerHTML = "Background color in HEX code. Last two digits control transparency.";
+
+	} else if (id === "hiddenCheck") {
+		vInfo.innerHTML = "Hide this element when you leave edit mode.";
+
+	} else if (id === "itemHeight") {
+		vInfo.innerHTML = "Element height in pixels.";
+
+	} else if (id === "itemWidth") {
+		vInfo.innerHTML = "Element width in pixels.";
+
+	} else if (id === "posXInput") {
+		vInfo.innerHTML = "Horizontal position in pixels.";
+
+	} else if (id === "posYInput") {
+		vInfo.innerHTML = "Vertical position in pixels.";
+
+	} else if (id === "posZInput") {
+		vInfo.innerHTML = "Layer order. Higher values are drawn on top.";
+
+	} else if (id === "text1") {
+		vInfo.innerHTML = "Text shown before the live value.";
+
+	} else if (id === "text2") {
+		vInfo.innerHTML = "Text shown after the live value.";
+
 	} else if (id === "editButton") {
 		vInfo.innerHTML = "Toggle between running mode and editing mode to show hidden elements and enable editing";
 
@@ -462,23 +505,71 @@ function mInfo(id) {
 	} else if (id === "fading") {
 		vInfo.innerHTML = "When dog finishes the course, after the time indicated in the delay, info will change to next dog with a smooth fade.";
 
+	} else if (id === "fadingSelector") {
+		vInfo.innerHTML = "Enable or disable the fade transition between competitors.";
+
 	} else if (id === "fadingDly") {
 		vInfo.innerHTML = "Delay in milliseconds to change displayed info when a dog final score is entered in Flow Agility platform.";
+
+	} else if (id === "fadingDelayInput") {
+		vInfo.innerHTML = "Delay in milliseconds before changing to the next competitor.";
 
 	} else if (id === "bgColor") {
 		vInfo.innerHTML = "Background color in HEX code. Last two digits 00 will make it transparent. i.e. #FFFFFF00";
 
+	} else if (id === "cromaBGcolorInput") {
+		vInfo.innerHTML = "Background color in HEX code. Last two digits 00 will make it transparent.";
+
 	} else if (id === "length") {
 		vInfo.innerHTML = "Course length to calculate speed in real time as time increases when local timer is connected.";
+
+	} else if (id === "lengthInput") {
+		vInfo.innerHTML = "Course length used to calculate live speed.";
 
 	} else if (id === "maxSpeed") {
 		vInfo.innerHTML = "Maximun speed to be displayed in real time as time increases when local timer is connected.";
 
+	} else if (id === "maxSpeedInput") {
+		vInfo.innerHTML = "If calculated speed is higher than this value, it is hidden.";
+
 	} else if (id === "streamigURL") {
 		vInfo.innerHTML = "URL provided by FlowAgility platform";
 
+	} else if (id === "urlWebsocket") {
+		vInfo.innerHTML = "FlowAgility streaming URL without protocol prefix.";
+
+	} else if (id === "connFlowStatus") {
+		vInfo.innerHTML = "Current FlowAgility connection status.";
+
+	} else if (id === "connFlowButton") {
+		vInfo.innerHTML = "Connect, disconnect or cancel FlowAgility reconnection attempts.";
+
 	} else if (id === "timerSelector") {
 		vInfo.innerHTML = "Timer brand";
+
+	} else if (id === "timerDelayInfo" || id === "timerDelayInput") {
+		vInfo.innerHTML = "Delay in milliseconds applied to every incoming timer telegram before it is processed on screen.";
+
+	} else if (id === "timerWebsocket") {
+		vInfo.innerHTML = "Timer address in host:port format, without protocol.";
+
+	} else if (id === "connTimerStatus") {
+		vInfo.innerHTML = "Current timer connection status.";
+
+	} else if (id === "connTimerButton") {
+		vInfo.innerHTML = "Connect, disconnect or cancel timer reconnection attempts.";
+
+	} else if (id === "imageName") {
+		vInfo.innerHTML = "Name of the currently selected overlay image file.";
+
+	} else if (id === "imageStatus") {
+		vInfo.innerHTML = "Current overlay image load status.";
+
+	} else if (id === "loadImgButton") {
+		vInfo.innerHTML = "Load a new overlay image or delete the current one.";
+
+	} else if (id === "resetInfoGen") {
+		vInfo.innerHTML = "Return to factory settings and delete saved settings.";
 
 	} else {
 		vInfo.style.display = "none";

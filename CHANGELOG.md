@@ -66,12 +66,16 @@
 - Improved connect and disconect workflow
 
 ## 0.7.0 - 2026/04/11
-- First version developed with AI assistance.
 - Improved drag and drop robustness, especially during fast mouse movement and while editing popup windows.
 - Improved settings import/export and restore behavior, including correct handling of null, empty and zero-like values.
 - Refactored and split the codebase into several JS files with clearer responsibilities and less coupling between UI, state, connections and persistence.
 - Improved FlowAgility and timer connection workflows, reconnect handling and validation of connection inputs.
-- Added replay and debug tooling with separate panels, fixture recording, fixture replay for manual testing for flowagility, and zonecron and galican timers.
+- Auto-connect on startup now only uses URLs actually saved in `FASIsettings`, so a fresh or reset state keeps the first connection manual.
+- Added configurable timer-message delay in milliseconds to compensate for slower video feeds when using local timers.
+- Timer delay now only affects applied live timer processing; manual replay stays immediate and Galican recording is no longer exposed to delayed-message loss on disconnect.
+- Improved replay and debug tooling with separate panels, fixture recording, automatic source detection and better timer/Flow diagnostics.
+- Added and organized manual testing and replay fixtures for FlowAgility, ZonEcron and Galican.
 - Improved consistency of editing workflows, modal/general cancel behavior, undo/redo restoration and Import/Export state changes.
 - Improved table rendering and data handling for course results, combined results and empty/current-team edge cases.
+- Expanded hover help tooltips in the general and properties windows so more controls explain their purpose directly in the UI.
 - Updated technical and user documentation to match the current architecture, replay workflow and local-use recommendations.

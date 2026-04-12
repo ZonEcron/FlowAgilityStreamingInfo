@@ -2,6 +2,7 @@ function readVisualSettingsSnapshot() {
 	return {
 		fadingEnabled: fadingSelector.selectedIndex,
 		fadingDelay: fadingDelayInput.value * 1,
+		timerDelay: timerDelayInput.value * 1,
 		bgColor: cromaBGcolorInput.value,
 		length: lengthInput.value,
 		maxSpeed: maxSpeedInput.value,
@@ -360,12 +361,12 @@ function dispatchReplayMessage(message) {
 	if (appState.replay.sourceType === "zonecron") {
 		timerSelector.selectedIndex = 0;
 		updateDebugPanel();
-		FASI.connections.handleTimerSocketMessage(message);
+		FASI.connections.handleTimerSocketMessage(message, { bypassDelay: true });
 		debugLog("replay", "Injected ZonEcron fixture message", message);
 	} else if (appState.replay.sourceType === "galican") {
 		timerSelector.selectedIndex = 1;
 		updateDebugPanel();
-		FASI.connections.handleTimerSocketMessage(message);
+		FASI.connections.handleTimerSocketMessage(message, { bypassDelay: true });
 		debugLog("replay", "Injected Galican fixture message", message);
 	} else {
 		FASI.connections.handleFlowSocketMessage(message);
@@ -553,6 +554,7 @@ function applyVisualSettingsSnapshot(visualSettings = {}) {
 	urlWebsocket.value = readValue(visualSettings, "urlWebsocket", "");
 	timerSelector.selectedIndex = readValue(visualSettings, "timerType", timerSelector.selectedIndex);
 	timerWebsocket.value = readValue(visualSettings, "timerWebsocket", "");
+	timerDelayInput.value = readValue(visualSettings, "timerDelay", 0);
 
 	fadingSelector.selectedIndex = readValue(visualSettings, "fadingEnabled", 1);
 	fadingDelayInput.value = readValue(visualSettings, "fadingDelay", 5000);

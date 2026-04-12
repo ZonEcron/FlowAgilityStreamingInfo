@@ -67,6 +67,9 @@ This file is the operational regression checklist for manual testing after meani
 4. Disconnect Flow and confirm timer F/R/E can appear on screen.
 5. Reconnect Flow and confirm timer F/R/E no longer override screen values.
 6. If Galican hardware is available, repeat the same checks on Galican.
+7. Set a non-zero timer delay and confirm the visible timer reaction is shifted by that delay.
+8. While the general window is open, change the timer delay input without pressing `Preview` or `Accept` and confirm live timer timing does not change yet.
+9. With a non-zero timer delay configured, confirm timer replay still advances immediately on each manual step.
 
 
 ## Reconnection Regression

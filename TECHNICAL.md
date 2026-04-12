@@ -191,6 +191,7 @@ Galican:
 Important functional decision:
 
 - when FlowAgility is connected, timer faults/refusals/elimination should not override FlowAgility data
+- timer messages may be delayed intentionally by a configurable per-message delay in milliseconds to compensate for slower video pipelines
 
 Timer parsing is now split into explicit helpers:
 
@@ -203,6 +204,13 @@ Timer parsing is now split into explicit helpers:
 - `getTimerSocketUrl()`
 
 The websocket layer should stay focused on transport and choose the correct helper based on the selected timer type.
+
+Current timer-delay behavior:
+
+- the delay is configured in the general window as milliseconds
+- it applies to every incoming ZonEcron or Galican message
+- ZonEcron `__ping__` is not delayed, to avoid breaking heartbeat timing
+- pending delayed timer messages are cleared on timer reconnect/reset/disconnect paths to avoid ghost updates after the socket closes
 
 
 ## Reconnection Helpers
@@ -400,10 +408,17 @@ Replay expectations:
 - Flow fixtures accept a single JSON object, a JSON array, or multiple JSON objects separated by newlines
 - Galican fixtures are JSON payloads and replay switches the timer parser to Galican automatically
 - replay no longer uses a manual source selector; source type is inferred from file contents
-- replay uses the same internal handlers as the live socket paths
+- replay uses the same internal handlers as the live socket paths, but bypasses the configurable live timer delay
 - Flow recording exports a JSON array
 - ZonEcron recording exports line-based TXT
 - Galican recording exports a JSON array
+
+Timer delay expectations:
+
+- the configured timer delay is taken from the applied UI state, not from whatever the user may be typing in the input before pressing `Preview`, `Accept` or `Save`
+- live timer messages are delayed; manual replay messages are not
+- pending delayed timer messages are cleared on timer disconnect/reconnect to avoid stale delayed updates
+- Galican fixture recording happens at receive time, before the delayed visual processing, so delayed messages are not lost if the timer disconnects
 
 Both panels stay off by default so the normal emission window remains unaffected.
 
